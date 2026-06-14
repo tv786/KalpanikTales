@@ -1,0 +1,173 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * KalpanikTales — Stories from Ancient Bharat
+ * Warm, festive, indo-traditional palette with bold accents.
+ */
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+
+  /* KalpanikTales brand tokens */
+  --color-saffron: var(--saffron);
+  --color-crimson: var(--crimson);
+  --color-gold: var(--gold);
+  --color-ivory: var(--ivory);
+  --color-maroon: var(--maroon);
+  --color-cream: var(--cream);
+  --color-indigo-deep: var(--indigo-deep);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --font-display: "Yatra One", serif;
+  --font-reading: "Lora", Georgia, serif;
+  --font-ui: "Inter", system-ui, sans-serif;
+
+  --shadow-elegant: 0 10px 40px -10px color-mix(in oklab, var(--crimson) 30%, transparent);
+  --shadow-glow: 0 0 60px -10px color-mix(in oklab, var(--gold) 40%, transparent);
+  --gradient-warm: linear-gradient(135deg, oklch(0.62 0.18 45) 0%, oklch(0.45 0.18 25) 100%);
+  --gradient-night: linear-gradient(135deg, oklch(0.18 0.05 280) 0%, oklch(0.12 0.04 270) 100%);
+  --transition-smooth: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+:root {
+  --radius: 0.75rem;
+
+  /* KalpanikTales brand — light (warm ivory) */
+  --saffron: oklch(0.68 0.18 50);          /* #E8751A */
+  --crimson: oklch(0.42 0.17 25);          /* #8B1A1A */
+  --gold: oklch(0.68 0.13 80);             /* #C8960C */
+  --ivory: oklch(0.97 0.02 80);            /* #FDF6EC */
+  --maroon: oklch(0.32 0.14 22);           /* #5C0A0A */
+  --cream: oklch(0.88 0.04 75);            /* #E8DCC8 */
+  --indigo-deep: oklch(0.18 0.05 280);     /* #0D0F1E */
+
+  --background: var(--ivory);
+  --foreground: oklch(0.22 0.02 30);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.22 0.02 30);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.22 0.02 30);
+  --primary: var(--crimson);
+  --primary-foreground: var(--ivory);
+  --secondary: var(--cream);
+  --secondary-foreground: var(--maroon);
+  --muted: oklch(0.94 0.02 75);
+  --muted-foreground: oklch(0.45 0.03 35);
+  --accent: var(--gold);
+  --accent-foreground: oklch(0.18 0.02 30);
+  --destructive: oklch(0.55 0.22 25);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.87 0.03 70);
+  --input: oklch(0.87 0.03 70);
+  --ring: var(--saffron);
+
+  --chart-1: var(--crimson);
+  --chart-2: var(--saffron);
+  --chart-3: var(--gold);
+  --chart-4: oklch(0.55 0.13 160);
+  --chart-5: oklch(0.45 0.15 280);
+
+  --sidebar: var(--indigo-deep);
+  --sidebar-foreground: var(--cream);
+  --sidebar-primary: var(--saffron);
+  --sidebar-primary-foreground: oklch(0.98 0 0);
+  --sidebar-accent: oklch(0.22 0.04 280);
+  --sidebar-accent-foreground: var(--cream);
+  --sidebar-border: oklch(0.28 0.04 280);
+  --sidebar-ring: var(--saffron);
+}
+
+.dark {
+  --background: var(--indigo-deep);
+  --foreground: var(--cream);
+  --card: oklch(0.22 0.04 275);
+  --card-foreground: var(--cream);
+  --popover: oklch(0.22 0.04 275);
+  --popover-foreground: var(--cream);
+  --primary: var(--saffron);
+  --primary-foreground: oklch(0.15 0.02 30);
+  --secondary: oklch(0.27 0.04 275);
+  --secondary-foreground: var(--cream);
+  --muted: oklch(0.27 0.04 275);
+  --muted-foreground: oklch(0.72 0.03 70);
+  --accent: oklch(0.72 0.14 80);
+  --accent-foreground: oklch(0.15 0.02 30);
+  --destructive: oklch(0.62 0.2 25);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.32 0.04 275);
+  --input: oklch(0.32 0.04 275);
+  --ring: var(--saffron);
+
+  --sidebar: oklch(0.12 0.04 280);
+  --sidebar-foreground: var(--cream);
+  --sidebar-primary: var(--saffron);
+  --sidebar-primary-foreground: oklch(0.98 0 0);
+  --sidebar-accent: oklch(0.2 0.04 280);
+  --sidebar-accent-foreground: var(--cream);
+  --sidebar-border: oklch(0.25 0.04 280);
+  --sidebar-ring: var(--saffron);
+}
+
+@layer base {
+  * { border-color: var(--color-border); }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-ui);
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+  }
+}
+
+/* Decorative element — paisley divider */
+.paisley-divider {
+  background-image: radial-gradient(circle, var(--gold) 1px, transparent 1px);
+  background-size: 12px 12px;
+  height: 1px;
+  opacity: 0.4;
+}
