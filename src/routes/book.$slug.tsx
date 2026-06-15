@@ -17,6 +17,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { timeAgo, formatNumber } from "@/lib/helpers";
+import { getSessionId, hasViewedBook, markBookAsViewed } from "@/lib/view-tracking";
 
 async function fetchBookDetail(slug: string) {
   const { data, error } = await supabase
@@ -140,12 +141,32 @@ function BookDetailPage() {
     enabled: !!book,
   });
 
-  // Increment view count once per mount
+  // Increment view count once per session
   useEffect(() => {
     if (book?.id) {
-      supabase.rpc("increment_book_views", { book_id_param: book.id });
+      const sessionId = getSessionId();
+      const alreadyViewed = hasViewedBook(book.id);
+      console.log("Book ID:", book.id, "Session ID:", sessionId, "Already viewed:", alreadyViewed);
+      
+      if (!alreadyViewed) {
+        console.log("Attempting to increment views for book:", book.id);
+        supabase.rpc("increment_book_views", { book_id_param: book.id, session_id_param: sessionId }).then(
+          ({ error }) => {
+            if (error) {
+              console.error("Failed to increment book views:", error);
+            } else {
+              console.log("Successfully incremented views for book:", book.id);
+              markBookAsViewed(book.id);
+              // Refresh book data to get updated view count
+              qc.invalidateQueries({ queryKey: ["book", slug] });
+            }
+          }
+        );
+      } else {
+        console.log("Book already viewed in this session, skipping increment");
+      }
     }
-  }, [book?.id]);
+  }, [book?.id, slug, qc]);
 
   const rate = useMutation({
     mutationFn: async (score: number) => {

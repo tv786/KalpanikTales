@@ -125,7 +125,7 @@ export function BookSlider({
                 scaleActive && i === activeIndex ? "scale-105 z-10" : "scale-100"
               }`}
             >
-              <BookCard book={b} />
+              <BookCard book={b} priority={i < 3} />
             </div>
           ))}
         </div>

@@ -33,29 +33,43 @@ export const Route = createFileRoute("/")({
       },
     ],
   }),
+  loader: async () => {
+    const [latest, chapterReleases, popular, topRated] = await Promise.all([
+      fetchBooks({ sort: "newest", limit: 12 }),
+      fetchLastWeekBooks(8),
+      fetchMostViewedBooks(8),
+      fetchBooks({ sort: "rating", limit: 6 }),
+    ]);
+    return { latest, chapterReleases, popular, topRated };
+  },
   component: HomePage,
 });
 
 function HomePage() {
+  const loaderData = Route.useLoaderData();
   const latest = useQuery({
     queryKey: ["latest-books"],
     queryFn: () => fetchBooks({ sort: "newest", limit: 12 }),
     staleTime: 1000 * 60 * 5, // 5 minutes
+    initialData: loaderData.latest,
   });
   const chapterReleases = useQuery({
     queryKey: ["homepage-chapter-releases"],
     queryFn: () => fetchLastWeekBooks(8),
     staleTime: 1000 * 60 * 5,
+    initialData: loaderData.chapterReleases,
   });
   const popular = useQuery({
     queryKey: ["homepage-popular"],
     queryFn: () => fetchMostViewedBooks(8),
     staleTime: 1000 * 60 * 10,
+    initialData: loaderData.popular,
   });
   const topRated = useQuery({
     queryKey: ["homepage-top-rated"],
     queryFn: () => fetchBooks({ sort: "rating", limit: 6 }),
     staleTime: 1000 * 60 * 10,
+    initialData: loaderData.topRated,
   });
 
   const trendingBooks = chapterReleases.data?.length ? chapterReleases.data : popular.data;
@@ -254,7 +268,7 @@ function RankedBook({ book, rank }: { book: BookCardData; rank: number }) {
     >
         <div className="relative aspect-[2/3] overflow-hidden rounded-md bg-muted">
         {book.cover_image_url ? (
-          <img src={book.cover_image_url} alt={book.title} className="h-full w-full object-cover" loading="lazy" />
+          <img src={book.cover_image_url} alt={book.title} className="h-full w-full object-cover" loading="lazy" decoding="async" />
         ) : (
           <div className="flex h-full items-center justify-center">
             <BookOpen className="h-6 w-6 text-[var(--gold)]/70" strokeWidth={1.5} />
@@ -269,7 +283,7 @@ function RankedBook({ book, rank }: { book: BookCardData; rank: number }) {
         <div className="mt-2 flex items-center gap-2 text-xs">
           <span className="inline-flex items-center gap-1 text-[var(--gold)]">
             <Star className={cn("h-3 w-3", (book.rating_count ?? 0) > 0 && "fill-current")} />
-            {(book.avg_rating ?? 0) > 0 ? book.avg_rating?.toFixed(1) : "New"}
+            {(book.avg_rating ?? 0) > 0 ? (book.avg_rating ?? 0).toFixed(1) : "New"}
           </span>
           {book.latest_chapter_number != null && (
             <span className="text-muted-foreground items-center rounded-full bg-gradient-to-r from-[var(--saffron)]/10 to-[var(--crimson)]/10 px-2 py-0.5 text-xs font-semibold text-[var(--crimson)]">Chapter {Number(book.latest_chapter_number)}</span>
@@ -292,7 +306,7 @@ function UpdateCard({ book }: { book: BookCardData }) {
     >
       <Link to="/book/$slug" params={{ slug: book.slug }} className="aspect-[2/3] overflow-hidden rounded-md bg-muted">
         {book.cover_image_url ? (
-          <img src={book.cover_image_url} alt={book.title} className="h-full w-full object-cover" loading="lazy" />
+          <img src={book.cover_image_url} alt={book.title} className="h-full w-full object-cover" loading="lazy" decoding="async" />
         ) : (
           <div className="flex h-full items-center justify-center">
             <BookOpen className="h-7 w-7 text-[var(--gold)]/70" strokeWidth={1.5} />

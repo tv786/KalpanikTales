@@ -9,7 +9,31 @@ import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 export default defineConfig({
   vite: {
     build: {
-      chunkSizeWarningLimit: 1000,
+      chunkSizeWarningLimit: 500, // Reduced from 1000 to encourage better code splitting
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            // Split vendor libraries
+            'react-vendor': ['react', 'react-dom'],
+            'radix-vendor': [
+              '@radix-ui/react-accordion',
+              '@radix-ui/react-alert-dialog',
+              '@radix-ui/react-avatar',
+              '@radix-ui/react-checkbox',
+              '@radix-ui/react-dialog',
+              '@radix-ui/react-dropdown-menu',
+              '@radix-ui/react-label',
+              '@radix-ui/react-popover',
+              '@radix-ui/react-select',
+              '@radix-ui/react-separator',
+              '@radix-ui/react-slot',
+              '@radix-ui/react-tabs',
+              '@radix-ui/react-tooltip',
+            ],
+            'tanstack-vendor': ['@tanstack/react-query', '@tanstack/react-router'],
+          },
+        },
+      },
     },
   },
   tanstackStart: {
@@ -17,6 +41,7 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+
   nitro: {
     preset: "vercel",
   },

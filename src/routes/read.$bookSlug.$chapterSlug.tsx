@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ChevronLeft, ChevronRight, Settings, ArrowLeft } from "lucide-react";
+import { getSessionId, hasViewedBook, markBookAsViewed } from "@/lib/view-tracking";
 
 export const Route = createFileRoute("/read/$bookSlug/$chapterSlug")({
   ssr: false,
@@ -151,6 +152,30 @@ function ReaderPage() {
     }, 600);
     return () => clearTimeout(t);
   }, [pageIndex, data, user]);
+
+  // Increment book view count once per session
+  useEffect(() => {
+    if (!data) return;
+    const sessionId = getSessionId();
+    const alreadyViewed = hasViewedBook(data.book.id);
+    console.log("Read route - Book ID:", data.book.id, "Session ID:", sessionId, "Already viewed:", alreadyViewed);
+    
+    if (!alreadyViewed) {
+      console.log("Read route - Attempting to increment views for book:", data.book.id);
+      supabase.rpc("increment_book_views", { book_id_param: data.book.id, session_id_param: sessionId }).then(
+        ({ error }) => {
+          if (error) {
+            console.error("Read route - Failed to increment book views:", error);
+          } else {
+            console.log("Read route - Successfully incremented views for book:", data.book.id);
+            markBookAsViewed(data.book.id);
+          }
+        }
+      );
+    } else {
+      console.log("Read route - Book already viewed in this session, skipping increment");
+    }
+  }, [data?.book.id]);
 
   if (isLoading) {
     return <div className="container py-16 text-center text-muted-foreground">Loading...</div>;
