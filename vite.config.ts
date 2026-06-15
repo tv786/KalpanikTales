@@ -11,27 +11,13 @@ export default defineConfig({
     build: {
       chunkSizeWarningLimit: 500, // Reduced from 1000 to encourage better code splitting
       rollupOptions: {
-        output: {
-          manualChunks: {
-            // Split vendor libraries
-            'react-vendor': ['react', 'react-dom'],
-            'radix-vendor': [
-              '@radix-ui/react-accordion',
-              '@radix-ui/react-alert-dialog',
-              '@radix-ui/react-avatar',
-              '@radix-ui/react-checkbox',
-              '@radix-ui/react-dialog',
-              '@radix-ui/react-dropdown-menu',
-              '@radix-ui/react-label',
-              '@radix-ui/react-popover',
-              '@radix-ui/react-select',
-              '@radix-ui/react-separator',
-              '@radix-ui/react-slot',
-              '@radix-ui/react-tabs',
-              '@radix-ui/react-tooltip',
-            ],
-            'tanstack-vendor': ['@tanstack/react-query', '@tanstack/react-router'],
-          },
+        onwarn(warning, warn) {
+          // Ignore unused imports from TanStack router packages
+          if (warning.code === 'UNUSED_EXTERNAL_IMPORT' &&
+              warning.message.includes('@tanstack')) {
+            return;
+          }
+          warn(warning);
         },
       },
     },
