@@ -30,5 +30,8 @@ export default defineConfig({
 
   nitro: {
     preset: "vercel",
+    // Supabase auth-js imports tslib at runtime; bundle it into the server output
+    // so Vercel functions don't fail with ERR_MODULE_NOT_FOUND.
+    noExternals: ["tslib"],
   },
 });

@@ -51,7 +51,7 @@ import "../_libs/radix-ui__react-roving-focus.mjs";
 import "../_libs/radix-ui__react-id.mjs";
 import "../_libs/aria-hidden.mjs";
 import "../_libs/react-remove-scroll.mjs";
-import "tslib";
+import "../_libs/tslib.mjs";
 import "../_libs/react-remove-scroll-bar.mjs";
 import "../_libs/react-style-singleton.mjs";
 import "../_libs/get-nonce.mjs";

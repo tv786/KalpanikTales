@@ -46,7 +46,7 @@ import "../_libs/supabase__phoenix.mjs";
 import "../_libs/supabase__storage-js.mjs";
 import "../_libs/iceberg-js.mjs";
 import "../_libs/supabase__auth-js.mjs";
-import "tslib";
+import "../_libs/tslib.mjs";
 import "../_libs/supabase__functions-js.mjs";
 function AuthPage() {
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex min-h-screen items-center justify-center bg-background px-4 py-12", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "w-full max-w-md", children: [
