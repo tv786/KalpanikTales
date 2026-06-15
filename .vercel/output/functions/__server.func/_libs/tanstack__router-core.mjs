@@ -1268,6 +1268,9 @@ function isRedirect(obj) {
 function isResolvedRedirect(obj) {
   return isRedirect(obj) && !!obj.options.href;
 }
+function parseRedirect(obj) {
+  if (obj !== null && typeof obj === "object" && obj.isSerializedRedirect) return redirect(obj);
+}
 function composeRewrites(rewrites) {
   return {
     input: ({ url }) => {
@@ -4277,8 +4280,9 @@ export {
   executeRewriteInput as E,
   defaultSerovalPlugins as F,
   makeSerovalPlugin as G,
-  redirect as H,
-  notFound as I,
+  parseRedirect as H,
+  redirect as I,
+  notFound as J,
   RouterCore as R,
   isDangerousProtocol as a,
   BaseRoute as b,
@@ -4301,9 +4305,9 @@ export {
   resolveManifestAssetLink as s,
   transformReadableStreamWithRouter as t,
   transformPipeableStreamWithRouter as u,
-  getNormalizedURL as v,
-  getOrigin as w,
-  attachRouterServerSsrUtils as x,
-  defineHandlerCallback as y,
+  defineHandlerCallback as v,
+  getNormalizedURL as w,
+  getOrigin as x,
+  attachRouterServerSsrUtils as y,
   createSerializationAdapter as z
 };

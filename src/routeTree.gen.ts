@@ -21,6 +21,7 @@ import { Route as AuthenticatedBookmarksRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authenticated/admin/route'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
 import { Route as ReadBookSlugChapterSlugRouteImport } from './routes/read.$bookSlug.$chapterSlug'
+import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin/users'
 import { Route as AuthenticatedAdminCategoriesRouteImport } from './routes/_authenticated/admin/categories'
 import { Route as AuthenticatedAdminAnnouncementsRouteImport } from './routes/_authenticated/admin/announcements'
 import { Route as AuthenticatedAdminBookIdIndexRouteImport } from './routes/_authenticated/admin/$bookId.index'
@@ -85,6 +86,11 @@ const ReadBookSlugChapterSlugRoute = ReadBookSlugChapterSlugRouteImport.update({
   path: '/read/$bookSlug/$chapterSlug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AuthenticatedAdminRouteRoute,
+} as any)
 const AuthenticatedAdminCategoriesRoute =
   AuthenticatedAdminCategoriesRouteImport.update({
     id: '/categories',
@@ -122,6 +128,7 @@ export interface FileRoutesByFullPath {
   '/book/$slug': typeof BookSlugRoute
   '/admin/announcements': typeof AuthenticatedAdminAnnouncementsRoute
   '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
+  '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/read/$bookSlug/$chapterSlug': typeof ReadBookSlugChapterSlugRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/admin/$bookId/$chapterId': typeof AuthenticatedAdminBookIdChapterIdRoute
@@ -138,6 +145,7 @@ export interface FileRoutesByTo {
   '/book/$slug': typeof BookSlugRoute
   '/admin/announcements': typeof AuthenticatedAdminAnnouncementsRoute
   '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
+  '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/read/$bookSlug/$chapterSlug': typeof ReadBookSlugChapterSlugRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/admin/$bookId/$chapterId': typeof AuthenticatedAdminBookIdChapterIdRoute
@@ -157,6 +165,7 @@ export interface FileRoutesById {
   '/book/$slug': typeof BookSlugRoute
   '/_authenticated/admin/announcements': typeof AuthenticatedAdminAnnouncementsRoute
   '/_authenticated/admin/categories': typeof AuthenticatedAdminCategoriesRoute
+  '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/read/$bookSlug/$chapterSlug': typeof ReadBookSlugChapterSlugRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/admin/$bookId/$chapterId': typeof AuthenticatedAdminBookIdChapterIdRoute
@@ -176,6 +185,7 @@ export interface FileRouteTypes {
     | '/book/$slug'
     | '/admin/announcements'
     | '/admin/categories'
+    | '/admin/users'
     | '/read/$bookSlug/$chapterSlug'
     | '/admin/'
     | '/admin/$bookId/$chapterId'
@@ -192,6 +202,7 @@ export interface FileRouteTypes {
     | '/book/$slug'
     | '/admin/announcements'
     | '/admin/categories'
+    | '/admin/users'
     | '/read/$bookSlug/$chapterSlug'
     | '/admin'
     | '/admin/$bookId/$chapterId'
@@ -210,6 +221,7 @@ export interface FileRouteTypes {
     | '/book/$slug'
     | '/_authenticated/admin/announcements'
     | '/_authenticated/admin/categories'
+    | '/_authenticated/admin/users'
     | '/read/$bookSlug/$chapterSlug'
     | '/_authenticated/admin/'
     | '/_authenticated/admin/$bookId/$chapterId'
@@ -313,6 +325,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReadBookSlugChapterSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin/users': {
+      id: '/_authenticated/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AuthenticatedAdminUsersRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/categories': {
       id: '/_authenticated/admin/categories'
       path: '/categories'
@@ -347,6 +366,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminAnnouncementsRoute: typeof AuthenticatedAdminAnnouncementsRoute
   AuthenticatedAdminCategoriesRoute: typeof AuthenticatedAdminCategoriesRoute
+  AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
   AuthenticatedAdminBookIdChapterIdRoute: typeof AuthenticatedAdminBookIdChapterIdRoute
   AuthenticatedAdminBookIdIndexRoute: typeof AuthenticatedAdminBookIdIndexRoute
@@ -356,6 +376,7 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
   {
     AuthenticatedAdminAnnouncementsRoute: AuthenticatedAdminAnnouncementsRoute,
     AuthenticatedAdminCategoriesRoute: AuthenticatedAdminCategoriesRoute,
+    AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
     AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
     AuthenticatedAdminBookIdChapterIdRoute:
       AuthenticatedAdminBookIdChapterIdRoute,
