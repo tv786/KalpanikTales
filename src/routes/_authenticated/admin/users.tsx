@@ -118,7 +118,7 @@ function AdminUsers() {
         </p>
       ) : (
         <div className="overflow-x-auto rounded-lg border border-border">
-          <table className="w-full text-sm">
+          <table className="w-full text-sm whitespace-nowrap">
             <thead className="bg-muted/40 text-left">
               <tr>
                 <th className="px-4 py-2">User</th>
