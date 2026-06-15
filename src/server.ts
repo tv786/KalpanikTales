@@ -39,10 +39,22 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
 
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
+    const url = new URL(request.url);
+    const pathname = url.pathname;
+
+    // Skip error normalization for static assets
+    const isStaticAsset = pathname.match(/\.(ico|png|jpg|jpeg|gif|svg|css|js|woff|woff2|ttf|eot|txt)$/i);
+
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
-      return await normalizeCatastrophicSsrResponse(response);
+      
+      // Only apply error normalization for non-static assets
+      if (!isStaticAsset) {
+        return await normalizeCatastrophicSsrResponse(response);
+      }
+      
+      return response;
     } catch (error) {
       console.error(error);
       return new Response(renderErrorPage(), {

@@ -53,7 +53,7 @@ function renderErrorPage() {
 let serverEntryPromise;
 async function getServerEntry() {
   if (!serverEntryPromise) {
-    serverEntryPromise = import("./server-DtVFYtz7.mjs").then(
+    serverEntryPromise = import("./server-CVCbaCUg.mjs").then(
       (m) => m.default ?? m
     );
   }
@@ -75,10 +75,16 @@ async function normalizeCatastrophicSsrResponse(response) {
 }
 const server = {
   async fetch(request, env, ctx) {
+    const url = new URL(request.url);
+    const pathname = url.pathname;
+    const isStaticAsset = pathname.match(/\.(ico|png|jpg|jpeg|gif|svg|css|js|woff|woff2|ttf|eot|txt)$/i);
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
-      return await normalizeCatastrophicSsrResponse(response);
+      if (!isStaticAsset) {
+        return await normalizeCatastrophicSsrResponse(response);
+      }
+      return response;
     } catch (error) {
       console.error(error);
       return new Response(renderErrorPage(), {
