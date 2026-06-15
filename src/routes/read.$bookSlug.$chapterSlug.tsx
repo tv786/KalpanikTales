@@ -199,7 +199,7 @@ function ReaderPage() {
   const [controlsVisible, setControlsVisible] = useState(false);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-transparent">
       {/* Reader header (rendered only when `controlsVisible` is true so it doesn't take layout space) */}
       {controlsVisible && (
         <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur">

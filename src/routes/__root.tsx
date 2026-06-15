@@ -13,10 +13,11 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { StarryBackground } from "../components/StarryBackground";
 
 function NotFoundComponent() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 text-center">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-transparent px-4 text-center">
       <h1 className="font-display text-[10rem] leading-none text-[var(--gold)]">404</h1>
       <h2 className="font-display text-3xl text-foreground">This tale could not be found</h2>
       <p className="mt-2 max-w-md text-sm text-muted-foreground">
@@ -40,7 +41,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   }, [error]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <div className="flex min-h-screen items-center justify-center bg-transparent px-4">
       <div className="max-w-md text-center">
         <h1 className="font-display text-3xl text-foreground">Something went wrong</h1>
         <p className="mt-2 text-sm text-muted-foreground">
@@ -130,7 +131,10 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
+      <StarryBackground />
+      <div className="relative z-10 flex min-h-screen flex-col">
+        <Outlet />
+      </div>
       <Toaster position="bottom-right" richColors />
     </QueryClientProvider>
   );

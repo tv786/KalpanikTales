@@ -76,7 +76,7 @@ function HomePage() {
   const latestUpdates = latest.data?.slice(0, 12);
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-background">
+    <div className="min-h-screen overflow-x-hidden bg-transparent">
       <Navbar />
       <main className="pb-16">
         <section className="border-b border-border bg-card/40">

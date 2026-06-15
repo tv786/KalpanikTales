@@ -57,7 +57,7 @@ function BrowsePage() {
   const hasFilters = type !== "all" || status !== "all" || sort !== "newest" || q !== "";
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-transparent">
       <Navbar />
       <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
         <h1 className="font-display text-4xl text-foreground">Browse</h1>

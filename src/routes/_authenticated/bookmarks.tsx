@@ -23,7 +23,7 @@ function BookmarksPage() {
   });
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-transparent">
       <Navbar />
       <main className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
         <header className="mb-10 flex items-center gap-4">

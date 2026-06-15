@@ -25,7 +25,7 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
+    <div className="flex min-h-screen items-center justify-center bg-transparent px-4 py-12">
       <div className="w-full max-w-md">
         <Link to="/" className="mb-6 flex items-center justify-center gap-2">
           <BookOpen className="h-7 w-7 text-[var(--gold)]" />

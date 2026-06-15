@@ -215,7 +215,7 @@ function BookDetailPage() {
   const firstChapter = chaptersQ.data?.[0];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-transparent">
       <Navbar />
       <main>
         {/* Hero header */}
