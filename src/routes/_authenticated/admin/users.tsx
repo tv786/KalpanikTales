@@ -117,7 +117,7 @@ function AdminUsers() {
           {search ? "No users match your search." : "No users yet."}
         </p>
       ) : (
-        <div className="overflow-hidden rounded-lg border border-border">
+        <div className="overflow-x-auto rounded-lg border border-border">
           <table className="w-full text-sm">
             <thead className="bg-muted/40 text-left">
               <tr>
