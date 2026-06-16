@@ -1,6 +1,7 @@
 {
   "version": 2,
   "cleanUrls": true,
+  "buildCommand": "npm install --legacy-peer-deps && npm run build",
   "headers": [
     {
       "source": "/favicon.ico",
