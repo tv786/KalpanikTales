@@ -47,6 +47,8 @@ export function Footer() {
             <ul className="mt-3 space-y-2 text-sm">
               <li><Link to="/browse" className="text-muted-foreground hover:text-primary">Browse</Link></li>
               <li><Link to="/search" className="text-muted-foreground hover:text-primary">Search</Link></li>
+              <li><Link to="/terms" className="text-muted-foreground hover:text-primary">Terms & Conditions</Link></li>
+              <li><Link to="/privacy" className="text-muted-foreground hover:text-primary">Privacy Policy</Link></li>
             </ul>
           </div>
 

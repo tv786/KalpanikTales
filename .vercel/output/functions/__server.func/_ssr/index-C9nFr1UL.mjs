@@ -10,7 +10,7 @@ import { I as ImageUpload } from "./ImageUpload-chas_NVX.mjs";
 import { S as Select, a as SelectTrigger, b as SelectValue, c as SelectContent, d as SelectItem } from "./select-CZRUt5a6.mjs";
 import { s as slugify } from "./helpers-BNSTMec-.mjs";
 import { t as toast } from "../_libs/sonner.mjs";
-import { P as Plus, p as Pencil, q as Trash } from "../_libs/lucide-react.mjs";
+import { P as Plus, v as Pencil, w as Trash } from "../_libs/lucide-react.mjs";
 import "../_libs/tanstack__router-core.mjs";
 import "../_libs/tanstack__history.mjs";
 import "../_libs/cookie-es.mjs";

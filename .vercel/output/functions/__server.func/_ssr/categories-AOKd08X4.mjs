@@ -7,7 +7,7 @@ import { I as Input } from "./input-C0QjszdI.mjs";
 import { L as Label } from "./label-JU3yqRBo.mjs";
 import { t as toast } from "../_libs/sonner.mjs";
 import { s as slugify } from "./helpers-BNSTMec-.mjs";
-import { r as ArrowLeft } from "../_libs/lucide-react.mjs";
+import { x as ArrowLeft } from "../_libs/lucide-react.mjs";
 import "../_libs/tanstack__router-core.mjs";
 import "../_libs/tanstack__history.mjs";
 import "../_libs/cookie-es.mjs";

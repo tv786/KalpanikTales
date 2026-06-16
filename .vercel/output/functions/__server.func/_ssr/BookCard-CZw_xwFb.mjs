@@ -2,7 +2,7 @@ import { j as jsxRuntimeExports } from "../_libs/react.mjs";
 import { L as Link } from "../_libs/tanstack__react-router.mjs";
 import { c as cn } from "./utils-H80jjgLf.mjs";
 import { m as motion } from "../_libs/framer-motion.mjs";
-import { B as BookOpen, b as Star } from "../_libs/lucide-react.mjs";
+import { B as BookOpen, f as Star } from "../_libs/lucide-react.mjs";
 function BookCard({ book, className, priority = false }) {
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
     motion.div,

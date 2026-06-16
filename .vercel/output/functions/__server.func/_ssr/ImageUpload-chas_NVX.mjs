@@ -3,7 +3,7 @@ import { B as Button } from "./button-BC9oXVxV.mjs";
 import { I as Input } from "./input-C0QjszdI.mjs";
 import { s as supabase } from "./client-Ek2-qFbi.mjs";
 import { t as toast } from "../_libs/sonner.mjs";
-import { w as LoaderCircle, x as Upload, X } from "../_libs/lucide-react.mjs";
+import { I as LoaderCircle, J as Upload, X } from "../_libs/lucide-react.mjs";
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 const MIME_EXTENSIONS = {
   "image/jpeg": "jpg",
