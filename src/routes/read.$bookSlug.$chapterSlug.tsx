@@ -23,10 +23,30 @@ import {
 } from "@/components/ui/select";
 import { ChevronLeft, ChevronRight, Settings, ArrowLeft } from "lucide-react";
 import { getSessionId, hasViewedBook, markBookAsViewed } from "@/lib/view-tracking";
+import { CommentThread } from "@/components/CommentThread";
+
+// Convert continuous page number to chapter-local page number
+function convertContinuousToChapterPage(continuousPage: number, chapterIndex: number, allChapters: any[], allPages: any[]): { chapterIndex: number; localPage: number } {
+  let offset = 0;
+  for (let i = 0; i < allChapters.length; i++) {
+    const chapterPages = allPages.filter(p => p.chapter_id === allChapters[i].id);
+    if (continuousPage <= offset + chapterPages.length) {
+      return { chapterIndex: i, localPage: continuousPage - offset };
+    }
+    offset += chapterPages.length;
+  }
+  // If page is beyond all pages, return last page
+  return { chapterIndex: allChapters.length - 1, localPage: allPages.filter(p => p.chapter_id === allChapters[allChapters.length - 1].id).length };
+}
 
 export const Route = createFileRoute("/read/$bookSlug/$chapterSlug")({
   ssr: false,
   component: ReaderPage,
+  validateSearch: (search: Record<string, unknown>) => {
+    return {
+      page: typeof search.page === "number" ? search.page : undefined,
+    };
+  },
 });
 
 type ReadMode = "single" | "scroll";
@@ -35,6 +55,8 @@ function ReaderPage() {
   const { bookSlug, chapterSlug } = Route.useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const searchParams = Route.useSearch();
+  const pageParam = searchParams.page as number | undefined;
 
   const [mode, setMode] = useState<ReadMode>(() => {
     if (typeof window === "undefined") return "single";
@@ -107,21 +129,30 @@ function ReaderPage() {
     };
   }, [data]);
 
-  // Restore last page from reading_history when chapter loads
+  // Restore last page from reading_history when chapter loads, or use page param from URL
   useEffect(() => {
-    if (!user || !data) return;
+    if (!data) return;
     let cancelled = false;
     (async () => {
-      const { data: hist } = await supabase
-        .from("reading_history")
-        .select("chapter_id, page_number")
-        .eq("user_id", user.id)
-        .eq("book_id", data.book.id)
-        .maybeSingle();
-      if (cancelled) return;
-      if (hist && hist.chapter_id === data.chapter.id) {
-        const target = Math.max(0, Math.min(data.pages.length - 1, hist.page_number - 1));
+      if (pageParam !== undefined && pageParam > 0) {
+        // Convert continuous page number to chapter-local page number
+        const { localPage } = convertContinuousToChapterPage(pageParam, data.chapters.findIndex(c => c.id === data.chapter.id), data.chapters, data.pages);
+        const target = Math.max(0, Math.min(data.pages.length - 1, localPage - 1));
         setPageIndex(target);
+      } else if (user) {
+        const { data: hist } = await supabase
+          .from("reading_history")
+          .select("chapter_id, page_number")
+          .eq("user_id", user.id)
+          .eq("book_id", data.book.id)
+          .maybeSingle();
+        if (cancelled) return;
+        if (hist && hist.chapter_id === data.chapter.id) {
+          const target = Math.max(0, Math.min(data.pages.length - 1, hist.page_number - 1));
+          setPageIndex(target);
+        } else {
+          setPageIndex(0);
+        }
       } else {
         setPageIndex(0);
       }
@@ -129,7 +160,7 @@ function ReaderPage() {
     return () => {
       cancelled = true;
     };
-  }, [user, data]);
+  }, [user, data, pageParam]);
 
   // Auto-save progress
   useEffect(() => {
@@ -218,7 +249,7 @@ function ReaderPage() {
                   value={chapter.slug}
                   onValueChange={(v) => {
                     if (!v || v === chapter.slug) return;
-                    navigate({ to: "/read/$bookSlug/$chapterSlug", params: { bookSlug: book.slug, chapterSlug: v } });
+                    navigate({ to: "/read/$bookSlug/$chapterSlug", params: { bookSlug: book.slug, chapterSlug: v }, search: { page: undefined } });
                   }}
                 >
                   <SelectTrigger className="w-full pointer-events-auto bg-muted/10 px-3 py-1 rounded-md text-sm relative z-20">
@@ -297,6 +328,9 @@ function ReaderPage() {
                 </div>
               </article>
             ))}
+            <div className="pt-8">
+              <CommentThread bookId={book.id} chapterId={chapter.id} />
+            </div>
           </div>
         ) : (
           <article>
@@ -307,6 +341,11 @@ function ReaderPage() {
                 fontSize={fontSize}
               />
             </div>
+            {pageIndex === pages.length - 1 && (
+              <div className="pt-8">
+                <CommentThread bookId={book.id} chapterId={chapter.id} />
+              </div>
+            )}
             {controlsVisible && (
               <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-background/95 backdrop-blur">
                 <div className="container mx-auto max-w-3xl px-4 sm:px-6 py-3 flex items-center justify-between gap-2">

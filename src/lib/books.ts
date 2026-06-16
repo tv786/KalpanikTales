@@ -59,7 +59,7 @@ export async function fetchBooks(opts: {
     supabase.from("ratings").select("book_id, score").in("book_id", ids),
     supabase
       .from("chapters")
-      .select("book_id, chapter_number")
+      .select("book_id, chapter_number, id")
       .eq("is_published", true)
       .in("book_id", ids)
       .order("chapter_number", { ascending: false }),
@@ -79,14 +79,65 @@ export async function fetchBooks(opts: {
     }
   });
 
+  // Fetch pages for all chapters
+  const chapterIds = (chapters ?? []).map(c => c.id);
+  const { data: pages } = await supabase
+    .from("pages")
+    .select("chapter_id, page_number")
+    .in("chapter_id", chapterIds);
+
+  // Calculate total pages per book and page ranges per chapter
+  const pagesByChapter = new Map<string, number[]>();
+  (pages ?? []).forEach((p) => {
+    const arr = pagesByChapter.get(p.chapter_id) ?? [];
+    arr.push(p.page_number);
+    pagesByChapter.set(p.chapter_id, arr);
+  });
+
+  const totalPagesByBook = new Map<string, number>();
+  const latestChapterPageRange = new Map<string, { start: number; end: number }>();
+  
+  // Calculate page offsets for continuous page numbering
+  const chapterPageOffsets = new Map<string, number>();
+  let offset = 0;
+  const sortedChapters = (chapters ?? []).sort((a, b) => Number(a.chapter_number) - Number(b.chapter_number));
+  
+  for (const chapter of sortedChapters) {
+    chapterPageOffsets.set(chapter.id, offset);
+    const chapterPages = pagesByChapter.get(chapter.id) ?? [];
+    offset += chapterPages.length;
+  }
+
+  // Calculate total pages and latest chapter page range
+  (chapters ?? []).forEach((c) => {
+    const chapterPages = pagesByChapter.get(c.id) ?? [];
+    const count = totalPagesByBook.get(c.book_id) ?? 0;
+    totalPagesByBook.set(c.book_id, count + chapterPages.length);
+    
+    // If this is the latest chapter for this book, calculate its page range
+    const currentLatest = latestChapterByBook.get(c.book_id);
+    if (currentLatest && Number(c.chapter_number) === currentLatest) {
+      const chapterOffset = chapterPageOffsets.get(c.id) ?? 0;
+      const startPage = chapterOffset + 1;
+      const endPage = chapterOffset + chapterPages.length;
+      latestChapterPageRange.set(c.book_id, { start: startPage, end: endPage });
+    }
+  });
+
   const enriched = books.map((b) => {
     const arr = byBook.get(b.id) ?? [];
     const avg = arr.length ? arr.reduce((a, c) => a + c, 0) / arr.length : 0;
+    const totalPages = totalPagesByBook.get(b.id) ?? 0;
+    const pageRange = latestChapterPageRange.get(b.id);
     return {
       ...b,
       avg_rating: avg,
       rating_count: arr.length,
       latest_chapter_number: latestChapterByBook.get(b.id) ?? null,
+      latest_page_number: totalPages > 0 ? totalPages : null,
+      total_pages: totalPages > 0 ? totalPages : null,
+      latest_page_start: pageRange?.start ?? null,
+      latest_page_end: pageRange?.end ?? null,
     };
   });
 
@@ -203,11 +254,12 @@ async function enrichBooks(books: any[]): Promise<BookCardData[]> {
     supabase.from("ratings").select("book_id, score").in("book_id", ids),
     supabase
       .from("chapters")
-      .select("book_id, chapter_number")
+      .select("book_id, chapter_number, id")
       .eq("is_published", true)
       .in("book_id", ids)
       .order("chapter_number", { ascending: false }),
   ]);
+  
   const byBook = new Map<string, number[]>();
   (ratings ?? []).forEach((r) => {
     const arr = byBook.get(r.book_id) ?? [];
@@ -218,14 +270,66 @@ async function enrichBooks(books: any[]): Promise<BookCardData[]> {
   (chapters ?? []).forEach((c) => {
     if (!latestChapter.has(c.book_id)) latestChapter.set(c.book_id, Number(c.chapter_number));
   });
+  
+  // Fetch pages for all chapters
+  const chapterIds = (chapters ?? []).map(c => c.id);
+  const { data: pages } = await supabase
+    .from("pages")
+    .select("chapter_id, page_number")
+    .in("chapter_id", chapterIds);
+  
+  // Calculate total pages per book and page ranges per chapter
+  const pagesByChapter = new Map<string, number[]>();
+  (pages ?? []).forEach((p) => {
+    const arr = pagesByChapter.get(p.chapter_id) ?? [];
+    arr.push(p.page_number);
+    pagesByChapter.set(p.chapter_id, arr);
+  });
+
+  const totalPagesByBook = new Map<string, number>();
+  const latestChapterPageRange = new Map<string, { start: number; end: number }>();
+  
+  // Calculate page offsets for continuous page numbering
+  const chapterPageOffsets = new Map<string, number>();
+  let offset = 0;
+  const sortedChapters = (chapters ?? []).sort((a, b) => Number(a.chapter_number) - Number(b.chapter_number));
+  
+  for (const chapter of sortedChapters) {
+    chapterPageOffsets.set(chapter.id, offset);
+    const chapterPages = pagesByChapter.get(chapter.id) ?? [];
+    offset += chapterPages.length;
+  }
+
+  // Calculate total pages and latest chapter page range
+  (chapters ?? []).forEach((c) => {
+    const chapterPages = pagesByChapter.get(c.id) ?? [];
+    const count = totalPagesByBook.get(c.book_id) ?? 0;
+    totalPagesByBook.set(c.book_id, count + chapterPages.length);
+    
+    // If this is the latest chapter for this book, calculate its page range
+    const currentLatest = latestChapter.get(c.book_id);
+    if (currentLatest && Number(c.chapter_number) === currentLatest) {
+      const chapterOffset = chapterPageOffsets.get(c.id) ?? 0;
+      const startPage = chapterOffset + 1;
+      const endPage = chapterOffset + chapterPages.length;
+      latestChapterPageRange.set(c.book_id, { start: startPage, end: endPage });
+    }
+  });
+  
   return books.map((b) => {
     const arr = byBook.get(b.id) ?? [];
     const avg = arr.length ? arr.reduce((a, c) => a + c, 0) / arr.length : 0;
+    const totalPages = totalPagesByBook.get(b.id) ?? 0;
+    const pageRange = latestChapterPageRange.get(b.id);
     return {
       ...b,
       avg_rating: avg,
       rating_count: arr.length,
       latest_chapter_number: latestChapter.get(b.id) ?? null,
+      latest_page_number: totalPages > 0 ? totalPages : null,
+      total_pages: totalPages > 0 ? totalPages : null,
+      latest_page_start: pageRange?.start ?? null,
+      latest_page_end: pageRange?.end ?? null,
     };
   });
 }

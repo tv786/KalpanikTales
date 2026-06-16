@@ -19,6 +19,7 @@ import { Footer } from "@/components/layout/Footer";
 import { FeedbackButton } from "@/components/ui/feedback-button";
 import { BookCard, type BookCardData } from "@/components/BookCard";
 import { BookSlider } from "@/components/BookSlider";
+import { ContinueReading } from "@/components/ContinueReading";
 import { fetchBooks, fetchLastWeekBooks, fetchMostViewedBooks } from "@/lib/books";
 import { cn } from "@/lib/utils";
 
@@ -111,6 +112,10 @@ function HomePage() {
             autoplay
             scaleActive
           />
+        </section>
+
+        <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+          <ContinueReading />
         </section>
 
         <section className="mx-auto grid max-w-7xl gap-6 px-4 py-10 sm:px-6 lg:grid-cols-[minmax(0,1fr)_360px]">
@@ -285,8 +290,8 @@ function RankedBook({ book, rank }: { book: BookCardData; rank: number }) {
             <Star className={cn("h-3 w-3", (book.rating_count ?? 0) > 0 && "fill-current")} />
             {(book.avg_rating ?? 0) > 0 ? (book.avg_rating ?? 0).toFixed(1) : "New"}
           </span>
-          {book.latest_chapter_number != null && (
-            <span className="text-muted-foreground items-center rounded-full bg-gradient-to-r from-[var(--saffron)]/10 to-[var(--crimson)]/10 px-2 py-0.5 text-xs font-semibold text-[var(--crimson)]">Chapter {Number(book.latest_chapter_number)}</span>
+          {book.total_pages != null && (
+            <span className="text-muted-foreground items-center rounded-full bg-gradient-to-r from-[var(--saffron)]/10 to-[var(--crimson)]/10 px-2 py-0.5 text-xs font-semibold text-[var(--crimson)]">{book.total_pages} pages</span>
           )}
         </div>
       </div>
@@ -295,8 +300,6 @@ function RankedBook({ book, rank }: { book: BookCardData; rank: number }) {
 }
 
 function UpdateCard({ book }: { book: BookCardData }) {
-  const chapters = makeChapterRows(book.latest_chapter_number);
-
   return (
     <motion.article
       initial={{ opacity: 0, y: 12 }}
@@ -322,16 +325,12 @@ function UpdateCard({ book }: { book: BookCardData }) {
           {book.title}
         </Link>
         <p className="mt-1 text-xs capitalize text-muted-foreground">{book.status}</p>
-        <div className="mt-3 space-y-2">
-          {chapters.map((chapter) => (
-            <div
-              key={chapter.label}
-              className="flex items-center justify-between gap-3 rounded-md bg-muted/70 px-3 py-2 text-xs"
-            >
-              <span className="truncate font-medium text-foreground">{chapter.label}</span>
-              <span className="shrink-0 text-muted-foreground">{chapter.time}</span>
+        <div className="mt-3">
+          {book.total_pages != null && (
+            <div className="flex items-center justify-between gap-3 rounded-md bg-muted/70 px-3 py-2 text-xs">
+              <span className="font-medium text-foreground">{book.total_pages} pages</span>
             </div>
-          ))}
+          )}
         </div>
       </div>
     </motion.article>

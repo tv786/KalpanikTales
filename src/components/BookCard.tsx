@@ -14,6 +14,10 @@ export interface BookCardData {
   avg_rating?: number;
   rating_count?: number;
   latest_chapter_number?: number | null;
+  latest_page_number?: number | null;
+  total_pages?: number | null;
+  latest_page_start?: number | null;
+  latest_page_end?: number | null;
 }
 
 export function BookCard({ book, className, priority = false }: { book: BookCardData; className?: string; priority?: boolean }) {
@@ -55,11 +59,11 @@ export function BookCard({ book, className, priority = false }: { book: BookCard
           <h3 className="line-clamp-1 text-base font-medium text-foreground">{book.title}</h3>
           <div className="mt-2" />
           {/* author and publisher intentionally hidden in card */}
-          <div className="mt-1 text-xs flex items-center justify-left">
+          <div className="mt-1 text-xs flex items-center justify-left gap-2">
             <div />
-            {book.latest_chapter_number != null && (
+            {book.total_pages != null && (
               <span className="inline-flex items-center rounded-full bg-gradient-to-r from-[var(--saffron)]/10 to-[var(--crimson)]/10 px-2 py-0.5 text-xs font-semibold text-[var(--crimson)]">
-                Chapter. {Number(book.latest_chapter_number)}
+                {book.total_pages} pages
               </span>
             )}
           </div>

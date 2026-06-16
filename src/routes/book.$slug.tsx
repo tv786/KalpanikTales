@@ -1,8 +1,8 @@
-import { useEffect } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { BookOpen, Eye, Calendar, Bookmark, BookmarkCheck } from "lucide-react";
+import { BookOpen, Eye, Calendar, Bookmark, BookmarkCheck, CheckCircle, Circle, ChevronDown, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
@@ -77,6 +77,36 @@ async function fetchMyBookmark(bookId: string, userId: string) {
   return data?.id ?? null;
 }
 
+async function fetchReadingProgress(bookId: string, userId: string) {
+  const { data } = await supabase
+    .from("reading_history")
+    .select("chapter_id, page_number")
+    .eq("book_id", bookId)
+    .eq("user_id", userId)
+    .maybeSingle();
+  return data ?? null;
+}
+
+async function fetchChapterPages(chapterId: string) {
+  const { data, error } = await supabase
+    .from("pages")
+    .select("id, page_number")
+    .eq("chapter_id", chapterId)
+    .order("page_number", { ascending: true });
+  if (error) throw error;
+  return data ?? [];
+}
+
+async function fetchAllChapterPages(chapterIds: string[]) {
+  if (chapterIds.length === 0) return [];
+  const { data, error } = await supabase
+    .from("pages")
+    .select("chapter_id, page_number")
+    .in("chapter_id", chapterIds);
+  if (error) throw error;
+  return data ?? [];
+}
+
 export const Route = createFileRoute("/book/$slug")({
   component: BookDetailPage,
   notFoundComponent: () => (
@@ -107,6 +137,7 @@ function BookDetailPage() {
   const { slug } = Route.useParams();
   const { user } = useAuth();
   const qc = useQueryClient();
+  const [expandedChapterId, setExpandedChapterId] = useState<string | null>(null);
 
   const bookQ = useQuery({ queryKey: ["book", slug], queryFn: () => fetchBookDetail(slug) });
   const book = bookQ.data;
@@ -139,6 +170,24 @@ function BookDetailPage() {
     queryKey: ["comments-count", book?.id],
     queryFn: () => fetchCommentCount(book!.id),
     enabled: !!book,
+  });
+
+  const readingProgressQ = useQuery({
+    queryKey: ["reading-progress", book?.id, user?.id],
+    queryFn: () => fetchReadingProgress(book!.id, user!.id),
+    enabled: !!book && !!user,
+  });
+
+  const chapterPagesQ = useQuery({
+    queryKey: ["chapter-pages", expandedChapterId],
+    queryFn: () => fetchChapterPages(expandedChapterId!),
+    enabled: !!expandedChapterId,
+  });
+
+  const allPagesQ = useQuery({
+    queryKey: ["all-pages", book?.id, chaptersQ.data?.map(c => c.id)],
+    queryFn: () => fetchAllChapterPages(chaptersQ.data?.map(c => c.id) ?? []),
+    enabled: !!book && !!chaptersQ.data && chaptersQ.data.length > 0,
   });
 
   // Increment view count once per session
@@ -199,6 +248,20 @@ function BookDetailPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  // Calculate continuous page offsets for each chapter (must be before early return)
+  const chapters = chaptersQ.data ?? [];
+  const allPages = allPagesQ.data ?? [];
+  const chapterPageOffsets = useMemo(() => {
+    const offsets: Record<string, number> = {};
+    let offset = 0;
+    for (let i = 0; i < chapters.length; i++) {
+      offsets[chapters[i].id] = offset;
+      const chapterPages = allPages.filter(p => p.chapter_id === chapters[i].id);
+      offset += chapterPages.length;
+    }
+    return offsets;
+  }, [chapters, allPages]);
+
   if (bookQ.isLoading || !book) {
     return (
       <div className="min-h-screen bg-background">
@@ -213,6 +276,41 @@ function BookDetailPage() {
   const ratings = ratingsQ.data ?? [];
   const avg = ratings.length ? ratings.reduce((a, c) => a + c, 0) / ratings.length : 0;
   const firstChapter = chaptersQ.data?.[0];
+  const readingProgress = readingProgressQ.data;
+  const currentChapterId = readingProgress?.chapter_id;
+  const currentPageNumber = readingProgress?.page_number;
+  
+  // Calculate which chapters are read (chapters before and including current reading progress)
+  const currentChapterIndex = currentChapterId 
+    ? chapters.findIndex(ch => ch.id === currentChapterId)
+    : -1;
+  const totalChapters = chapters.length;
+  
+  // Calculate page-level progress
+  const totalPages = allPages.length;
+  let completedPages = 0;
+  
+  if (currentChapterIndex >= 0 && totalPages > 0) {
+    // Count all pages from chapters before current chapter
+    for (let i = 0; i < currentChapterIndex; i++) {
+      const chapterPages = allPages.filter(p => p.chapter_id === chapters[i].id);
+      completedPages += chapterPages.length;
+    }
+    // Add pages read in current chapter
+    if (currentPageNumber) {
+      const currentChapterPages = allPages.filter(p => p.chapter_id === currentChapterId);
+      completedPages += Math.min(currentPageNumber, currentChapterPages.length);
+    }
+  }
+  
+  const progressPercent = totalPages > 0 
+    ? Math.round((completedPages / totalPages) * 100)
+    : 0;
+  
+  // Calculate continuous page number for display
+  const continuousCurrentPageNumber = currentChapterId && currentPageNumber
+    ? chapterPageOffsets[currentChapterId] + currentPageNumber
+    : null;
 
   return (
     <div className="min-h-screen bg-transparent">
@@ -272,7 +370,7 @@ function BookDetailPage() {
               <div className="mt-6 flex flex-wrap gap-3">
                 {firstChapter ? (
                   <Button size="lg" asChild>
-                    <Link to="/read/$bookSlug/$chapterSlug" params={{ bookSlug: book.slug, chapterSlug: firstChapter.slug }}>
+                    <Link to="/read/$bookSlug/$chapterSlug" params={{ bookSlug: book.slug, chapterSlug: firstChapter.slug }} search={{ page: undefined }}>
                       <BookOpen className="mr-2 h-5 w-5" />
                       Start: {firstChapter.title}
                     </Link>
@@ -317,24 +415,121 @@ function BookDetailPage() {
                   description="The author is weaving — check back soon."
                 />
               ) : (
-                <ul className="divide-y divide-border rounded-xl border border-border bg-card">
-                  {chaptersQ.data!.map((ch) => (
-                    <li key={ch.id} className="flex items-center justify-between gap-4 px-4 py-3">
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-3">
-                          <span className="font-display text-[var(--gold)]">#{ch.chapter_number}</span>
-                          <span className="truncate font-medium">{ch.title}</span>
-                        </div>
-                        <p className="mt-0.5 text-xs text-muted-foreground">{timeAgo(ch.created_at)}</p>
+                <div className="space-y-4">
+                  {user && totalChapters > 0 && (
+                    <div className="rounded-lg border border-border bg-card p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium">Your progress</span>
+                        <span className="text-sm text-muted-foreground">{progressPercent}%</span>
                       </div>
-                      <Button size="sm" variant="ghost" asChild>
-                        <Link to="/read/$bookSlug/$chapterSlug" params={{ bookSlug: book.slug, chapterSlug: ch.slug }}>
-                          Read
-                        </Link>
-                      </Button>
-                    </li>
-                  ))}
-                </ul>
+                      <div className="h-2 overflow-hidden rounded-full bg-muted">
+                        <div
+                          className="h-full bg-gradient-to-r from-[var(--saffron)] to-[var(--crimson)] transition-all duration-300"
+                          style={{ width: `${progressPercent}%` }}
+                        />
+                      </div>
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        {currentChapterIndex >= 0 
+                          ? `You're on Chapter ${chapters[currentChapterIndex].chapter_number}${continuousCurrentPageNumber ? `, Page ${continuousCurrentPageNumber}` : ""}`
+                          : "Start reading to track your progress"}
+                      </p>
+                    </div>
+                  )}
+                  <ul className="divide-y divide-border rounded-xl border border-border bg-card">
+                    {chaptersQ.data!.map((ch, index) => {
+                      const isRead = user && currentChapterIndex >= 0 && index <= currentChapterIndex;
+                      const isCurrent = ch.id === currentChapterId;
+                      const isExpanded = expandedChapterId === ch.id;
+                      const pages = chapterPagesQ.data ?? [];
+                      return (
+                        <li key={ch.id}>
+                          <div 
+                            className={`flex items-center justify-between gap-4 px-4 py-3 transition-colors cursor-pointer ${
+                              isCurrent ? "bg-muted/50" : ""
+                            }`}
+                          >
+                            <div 
+                              className="min-w-0 flex-1"
+                              onClick={() => setExpandedChapterId(isExpanded ? null : ch.id)}
+                            >
+                              <div className="flex items-center gap-3">
+                                {user ? (
+                                  isRead ? (
+                                    <CheckCircle className="h-4 w-4 text-[var(--crimson)]" />
+                                  ) : (
+                                    <Circle className="h-4 w-4 text-muted-foreground" />
+                                  )
+                                ) : (
+                                  <span className="font-display text-[var(--gold)]">#{ch.chapter_number}</span>
+                                )}
+                                <span className="truncate font-medium">{ch.title}</span>
+                                {isCurrent && (
+                                  <Badge variant="secondary" className="text-xs">Current</Badge>
+                                )}
+                              </div>
+                              <p className="mt-0.5 text-xs text-muted-foreground">{timeAgo(ch.created_at)}</p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Button 
+                                size="sm" 
+                                variant="ghost" 
+                                onClick={() => setExpandedChapterId(isExpanded ? null : ch.id)}
+                                className="p-2"
+                              >
+                                {isExpanded ? (
+                                  <ChevronUp className="h-4 w-4" />
+                                ) : (
+                                  <ChevronDown className="h-4 w-4" />
+                                )}
+                              </Button>
+                              <Button size="sm" variant="ghost" asChild>
+                                <Link to="/read/$bookSlug/$chapterSlug" params={{ bookSlug: book.slug, chapterSlug: ch.slug }} search={{ page: undefined }}>
+                                  Read
+                                </Link>
+                              </Button>
+                            </div>
+                          </div>
+                          {isExpanded && (
+                            <div className="border-t border-border bg-muted/30 px-4 py-3">
+                              {chapterPagesQ.isLoading ? (
+                                <div className="flex gap-2">
+                                  {Array.from({ length: 3 }).map((_, i) => (
+                                    <Skeleton key={i} className="h-8 w-16 rounded" />
+                                  ))}
+                                </div>
+                              ) : pages.length > 0 ? (
+                                <div className="flex flex-wrap gap-2">
+                                  {pages.map((page) => {
+                                    const continuousPageNumber = chapterPageOffsets[ch.id] + page.page_number;
+                                    const isPageRead = user && isCurrent && currentPageNumber && page.page_number <= currentPageNumber;
+                                    return (
+                                      <Link
+                                        key={page.id}
+                                        to="/read/$bookSlug/$chapterSlug"
+                                        params={{ bookSlug: book.slug, chapterSlug: ch.slug }}
+                                        search={{ page: continuousPageNumber }}
+                                        className={`inline-flex items-center justify-center rounded-md border px-3 py-1.5 text-sm transition-colors ${
+                                          isPageRead
+                                            ? "border-[var(--crimson)] bg-[var(--crimson)]/10 text-[var(--crimson)]"
+                                            : "border-border bg-background text-foreground hover:bg-muted hover:text-primary"
+                                        }`}
+                                      >
+                                        {isPageRead && <CheckCircle className="mr-1 h-3 w-3" />}
+                                        Page {continuousPageNumber}
+                                      </Link>
+                                    );
+                                  })}
+                                </div>
+                              ) : (
+                                <p className="text-sm text-muted-foreground">No pages in this chapter yet.</p>
+                              )}
+                            </div>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
               )}
             </TabsContent>
 

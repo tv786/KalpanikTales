@@ -21,14 +21,19 @@ interface CommentRow {
   profiles?: { username: string | null; avatar_url: string | null } | null;
 }
 
-async function fetchComments(bookId: string): Promise<CommentRow[]> {
+async function fetchComments(bookId: string, chapterId?: string): Promise<CommentRow[]> {
   // Fetch comments first (avoid embedding `profiles(...)` which requires a direct FK to `profiles`)
-  const { data: commentsData, error: commentsError } = await supabase
+  let query = supabase
     .from("comments")
     .select("id, user_id, parent_id, content, likes, is_hidden, created_at")
     .eq("book_id", bookId)
-    .eq("is_hidden", false)
-    .order("created_at", { ascending: true });
+    .eq("is_hidden", false);
+  
+  if (chapterId) {
+    query = query.eq("chapter_id", chapterId);
+  }
+  
+  const { data: commentsData, error: commentsError } = await query.order("created_at", { ascending: true });
   if (commentsError) throw commentsError;
   const comments = (commentsData ?? []) as unknown as CommentRow[];
 
@@ -58,7 +63,7 @@ async function fetchMyLikes(userId: string, commentIds: string[]) {
   return new Set((data ?? []).map((d) => d.comment_id));
 }
 
-export function CommentThread({ bookId }: { bookId: string }) {
+export function CommentThread({ bookId, chapterId }: { bookId: string; chapterId?: string }) {
   const { user } = useAuth();
   const qc = useQueryClient();
   const [content, setContent] = useState("");
@@ -66,12 +71,12 @@ export function CommentThread({ bookId }: { bookId: string }) {
   const [replyContent, setReplyContent] = useState("");
 
   const commentsQ = useQuery({
-    queryKey: ["comments", bookId],
-    queryFn: () => fetchComments(bookId),
+    queryKey: ["comments", bookId, chapterId],
+    queryFn: () => fetchComments(bookId, chapterId),
     enabled: !!bookId,
   });
   const likesQ = useQuery({
-    queryKey: ["comment-likes", bookId, user?.id],
+    queryKey: ["comment-likes", bookId, chapterId, user?.id],
     queryFn: () => fetchMyLikes(user!.id, (commentsQ.data ?? []).map((c) => c.id)),
     enabled: !!user && !!commentsQ.data,
   });
@@ -85,6 +90,7 @@ export function CommentThread({ bookId }: { bookId: string }) {
       if (!user) throw new Error("Sign in to comment");
       const { error } = await supabase.from("comments").insert({
         book_id: bookId,
+        chapter_id: chapterId,
         user_id: user.id,
         content: vars.text.trim(),
         parent_id: vars.parent_id,
@@ -92,7 +98,7 @@ export function CommentThread({ bookId }: { bookId: string }) {
       if (error) throw error;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["comments", bookId] });
+      qc.invalidateQueries({ queryKey: ["comments", bookId, chapterId] });
       setContent("");
       setReplyContent("");
       setReplyTo(null);
@@ -119,8 +125,8 @@ export function CommentThread({ bookId }: { bookId: string }) {
       await supabase.from("comments").update({ likes: count ?? 0 }).eq("id", commentId);
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["comments", bookId] });
-      qc.invalidateQueries({ queryKey: ["comment-likes", bookId, user?.id] });
+      qc.invalidateQueries({ queryKey: ["comments", bookId, chapterId] });
+      qc.invalidateQueries({ queryKey: ["comment-likes", bookId, chapterId, user?.id] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
