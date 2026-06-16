@@ -32,7 +32,7 @@ export function Footer() {
     <footer className="mt-24 border-t border-border bg-secondary/30">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
         <div className="grid gap-10 md:grid-cols-4">
-          <div className="md:col-span-2">
+          <div className="md:col-span-1">
             <Link to="/" className="flex items-center gap-2">
               <BookOpen className="h-6 w-6 text-[var(--gold)]" />
               <span className="font-display text-2xl text-[var(--gold)]">KalpanikTales</span>
@@ -47,6 +47,12 @@ export function Footer() {
             <ul className="mt-3 space-y-2 text-sm">
               <li><Link to="/browse" className="text-muted-foreground hover:text-primary">Browse</Link></li>
               <li><Link to="/search" className="text-muted-foreground hover:text-primary">Search</Link></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="font-display text-lg">Legal</h4>
+            <ul className="mt-3 space-y-2 text-sm">
               <li><Link to="/terms" className="text-muted-foreground hover:text-primary">Terms & Conditions</Link></li>
               <li><Link to="/privacy" className="text-muted-foreground hover:text-primary">Privacy Policy</Link></li>
             </ul>
