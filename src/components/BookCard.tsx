@@ -59,7 +59,7 @@ export function BookCard({ book, className, priority = false }: { book: BookCard
           <h3 className="line-clamp-1 text-base font-medium text-foreground">{book.title}</h3>
           <div className="mt-2" />
           {/* author and publisher intentionally hidden in card */}
-          <div className="mt-1 text-xs flex items-center justify-left gap-2">
+          <div className="mt-1 text-xs flex items-center justify-left">
             <div />
             {book.total_pages != null && (
               <span className="inline-flex items-center rounded-full bg-gradient-to-r from-[var(--saffron)]/10 to-[var(--crimson)]/10 px-2 py-0.5 text-xs font-semibold text-[var(--crimson)]">

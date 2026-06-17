@@ -119,6 +119,9 @@ function AdminBooks() {
           <Button asChild variant="ghost" size="sm">
             <Link to="/admin/users">Users</Link>
           </Button>
+          <Button asChild variant="ghost" size="sm">
+            <Link to="/admin/feedback">Feedback</Link>
+          </Button>
         </div>
         <Button onClick={() => setShowForm((v) => !v)}>
           <Plus className="mr-2 h-4 w-4" /> New book

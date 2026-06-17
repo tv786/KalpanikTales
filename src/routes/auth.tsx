@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/auth")({
@@ -132,9 +133,11 @@ function RegisterForm() {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [busy, setBusy] = useState(false);
+  const [agreed, setAgreed] = useState(false);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (!agreed) { toast.error("You must agree to the Terms, Privacy Policy, and Content Disclaimer"); return; }
     if (password !== confirm) { toast.error("Passwords do not match"); return; }
     if (username.trim().length < 2) { toast.error("Username is too short"); return; }
     if (password.length < 6) { toast.error("Password must be at least 6 characters"); return; }
@@ -174,6 +177,22 @@ function RegisterForm() {
       <div className="space-y-2">
         <Label htmlFor="reg-confirm">Confirm password</Label>
         <Input id="reg-confirm" type="password" required value={confirm} onChange={(e) => setConfirm(e.target.value)} />
+      </div>
+      <div className="flex items-start gap-2">
+        <Checkbox 
+          id="agree" 
+          checked={agreed} 
+          onCheckedChange={(checked) => setAgreed(checked === true)}
+          className="mt-0.5"
+        />
+        <Label htmlFor="agree" className="text-xs leading-5 cursor-pointer">
+          I agree to the{" "}
+          <Link to="/terms" className="text-[var(--gold)] hover:underline">Terms & Conditions</Link>
+          ,{" "}
+          <Link to="/privacy" className="text-[var(--gold)] hover:underline">Privacy Policy</Link>
+          , and{" "}
+          <Link to="/disclaimer" className="text-[var(--gold)] hover:underline">Content Disclaimer</Link>
+        </Label>
       </div>
       <Button type="submit" disabled={busy} className="w-full">
         {busy ? "Creating…" : "Create account"}
