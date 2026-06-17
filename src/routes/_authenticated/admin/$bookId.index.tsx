@@ -66,6 +66,9 @@ function AdminBookDetail() {
           status: edit.status,
           cover_image_url: edit.cover_image_url,
           is_featured: edit.is_featured,
+          meta_title: (edit as any).meta_title || null,
+          meta_description: (edit as any).meta_description || null,
+          meta_keywords: (edit as any).meta_keywords || null,
         })
         .eq("id", bookId);
       if (error) throw error;
@@ -221,6 +224,34 @@ function AdminBookDetail() {
           <div className="space-y-2 md:col-span-2">
             <Label>Synopsis</Label>
             <Textarea rows={4} value={edit.synopsis ?? ""} onChange={(e) => setEdit({ ...edit, synopsis: e.target.value })} />
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <Label>Meta Title</Label>
+            <Input 
+              value={(edit as any).meta_title ?? ""} 
+              onChange={(e) => setEdit({ ...edit, meta_title: e.target.value })}
+              placeholder={`Defaults to: ${edit.title}`}
+            />
+            <p className="text-xs text-muted-foreground">Leave empty to use book title</p>
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <Label>Meta Description</Label>
+            <Textarea 
+              rows={3}
+              value={(edit as any).meta_description ?? ""} 
+              onChange={(e) => setEdit({ ...edit, meta_description: e.target.value })}
+              placeholder={`Defaults to: ${edit.synopsis?.substring(0, 150)}...`}
+            />
+            <p className="text-xs text-muted-foreground">Leave empty to use synopsis</p>
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <Label>Meta Keywords</Label>
+            <Input 
+              value={(edit as any).meta_keywords ?? ""} 
+              onChange={(e) => setEdit({ ...edit, meta_keywords: e.target.value })}
+              placeholder="e.g., mythology, folklore, fantasy"
+            />
+            <p className="text-xs text-muted-foreground">Comma-separated keywords for SEO</p>
           </div>
         </div>
         <div className="flex justify-end">

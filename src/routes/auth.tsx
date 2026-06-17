@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createFileRoute, Link, useNavigate, redirect } from "@tanstack/react-router";
 import { BookOpen } from "lucide-react";
 import { toast } from "sonner";
@@ -24,6 +24,16 @@ export const Route = createFileRoute("/auth")({
 });
 
 function AuthPage() {
+  const [isResetMode, setIsResetMode] = useState(false);
+
+  useEffect(() => {
+    // Check if URL contains password reset tokens
+    const hash = window.location.hash;
+    if (hash.includes('access_token') || hash.includes('type=recovery')) {
+      setIsResetMode(true);
+    }
+  }, []);
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-transparent px-4 py-12">
       <div className="w-full max-w-md">
@@ -32,14 +42,18 @@ function AuthPage() {
           <span className="font-display text-3xl text-[var(--gold)]">KalpanikTales</span>
         </Link>
         <div className="rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-elegant)]">
-          <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login">Sign in</TabsTrigger>
-              <TabsTrigger value="register">Create account</TabsTrigger>
-            </TabsList>
-            <TabsContent value="login"><LoginForm /></TabsContent>
-            <TabsContent value="register"><RegisterForm /></TabsContent>
-          </Tabs>
+          {isResetMode ? (
+            <PasswordResetForm onCancel={() => setIsResetMode(false)} />
+          ) : (
+            <Tabs defaultValue="login" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="login">Sign in</TabsTrigger>
+                <TabsTrigger value="register">Create account</TabsTrigger>
+              </TabsList>
+              <TabsContent value="login"><LoginForm /></TabsContent>
+              <TabsContent value="register"><RegisterForm /></TabsContent>
+            </Tabs>
+          )}
         </div>
         <p className="mt-4 text-center text-xs text-muted-foreground">
           By continuing, you agree to read responsibly and share generously.
@@ -54,6 +68,20 @@ function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const [resetting, setResetting] = useState(false);
+
+  async function handleForgotPassword(email: string) {
+    setResetting(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth`,
+    });
+    setResetting(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Password reset email sent. Check your inbox.");
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -74,6 +102,21 @@ function LoginForm() {
       <div className="space-y-2">
         <Label htmlFor="login-password">Password</Label>
         <Input id="login-password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+      </div>
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={() => {
+            if (!email) {
+              toast.error("Please enter your email address first");
+              return;
+            }
+            handleForgotPassword(email);
+          }}
+          className="text-xs text-primary hover:underline"
+        >
+          Forgot password?
+        </button>
       </div>
       <Button type="submit" disabled={busy} className="w-full">
         {busy ? "Signing in…" : "Sign in"}
@@ -134,6 +177,69 @@ function RegisterForm() {
       </div>
       <Button type="submit" disabled={busy} className="w-full">
         {busy ? "Creating…" : "Create account"}
+      </Button>
+    </form>
+  );
+}
+
+function PasswordResetForm({ onCancel }: { onCancel: () => void }) {
+  const navigate = useNavigate();
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (password.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+    if (password !== confirm) {
+      toast.error("Passwords do not match");
+      return;
+    }
+    setBusy(true);
+    const { error } = await supabase.auth.updateUser({ password });
+    setBusy(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Password updated successfully");
+    navigate({ to: "/auth" });
+  }
+
+  return (
+    <form onSubmit={submit} className="space-y-4">
+      <h1 className="font-display text-2xl text-foreground mb-2">Reset password</h1>
+      <p className="text-sm text-muted-foreground mb-4">Enter your new password below.</p>
+      <div className="space-y-2">
+        <Label htmlFor="new-password">New password</Label>
+        <Input
+          id="new-password"
+          type="password"
+          required
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          autoComplete="new-password"
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="confirm-password">Confirm new password</Label>
+        <Input
+          id="confirm-password"
+          type="password"
+          required
+          value={confirm}
+          onChange={(e) => setConfirm(e.target.value)}
+          autoComplete="new-password"
+        />
+      </div>
+      <Button type="submit" disabled={busy} className="w-full">
+        {busy ? "Updating…" : "Update password"}
+      </Button>
+      <Button type="button" variant="ghost" onClick={onCancel} className="w-full">
+        Cancel
       </Button>
     </form>
   );

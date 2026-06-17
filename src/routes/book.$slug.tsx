@@ -142,6 +142,35 @@ function BookDetailPage() {
   const bookQ = useQuery({ queryKey: ["book", slug], queryFn: () => fetchBookDetail(slug) });
   const book = bookQ.data;
 
+  useEffect(() => {
+    if (book) {
+      const bookWithMeta = book as any;
+      document.title = bookWithMeta.meta_title || book.title || "Book — KalpanikTales";
+      
+      // Update or create meta description
+      let metaDescription = document.querySelector('meta[name="description"]') as HTMLMetaElement;
+      if (!metaDescription) {
+        metaDescription = document.createElement('meta') as HTMLMetaElement;
+        metaDescription.name = 'description';
+        document.head.appendChild(metaDescription);
+      }
+      metaDescription.content = bookWithMeta.meta_description || book.synopsis || "Read mythological, folklore, and fantasy story books from across Bharat.";
+
+      // Update or create meta keywords
+      let metaKeywords = document.querySelector('meta[name="keywords"]') as HTMLMetaElement;
+      if (!metaKeywords) {
+        metaKeywords = document.createElement('meta') as HTMLMetaElement;
+        metaKeywords.name = 'keywords';
+        document.head.appendChild(metaKeywords);
+      }
+      if (bookWithMeta.meta_keywords) {
+        metaKeywords.content = bookWithMeta.meta_keywords;
+      } else {
+        metaKeywords.removeAttribute('content');
+      }
+    }
+  }, [book]);
+
   const chaptersQ = useQuery({
     queryKey: ["chapters", book?.id],
     queryFn: () => fetchChapters(book!.id),

@@ -18,6 +18,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BookSlugRouteImport } from './routes/book.$slug'
+import { Route as AuthResetPasswordRouteImport } from './routes/auth.reset-password'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedBookmarksRouteImport } from './routes/_authenticated/bookmarks'
 import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authenticated/admin/route'
@@ -72,6 +73,11 @@ const BookSlugRoute = BookSlugRouteImport.update({
   id: '/book/$slug',
   path: '/book/$slug',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => AuthRoute,
 } as any)
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   id: '/profile',
@@ -130,7 +136,7 @@ const AuthenticatedAdminBookIdChapterIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/browse': typeof BrowseRoute
   '/privacy': typeof PrivacyRoute
   '/search': typeof SearchRoute
@@ -139,6 +145,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/bookmarks': typeof AuthenticatedBookmarksRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/auth/reset-password': typeof AuthResetPasswordRoute
   '/book/$slug': typeof BookSlugRoute
   '/admin/announcements': typeof AuthenticatedAdminAnnouncementsRoute
   '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
@@ -150,7 +157,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/browse': typeof BrowseRoute
   '/privacy': typeof PrivacyRoute
   '/search': typeof SearchRoute
@@ -158,6 +165,7 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/bookmarks': typeof AuthenticatedBookmarksRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/auth/reset-password': typeof AuthResetPasswordRoute
   '/book/$slug': typeof BookSlugRoute
   '/admin/announcements': typeof AuthenticatedAdminAnnouncementsRoute
   '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
@@ -171,7 +179,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/browse': typeof BrowseRoute
   '/privacy': typeof PrivacyRoute
   '/search': typeof SearchRoute
@@ -180,6 +188,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/_authenticated/bookmarks': typeof AuthenticatedBookmarksRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/auth/reset-password': typeof AuthResetPasswordRoute
   '/book/$slug': typeof BookSlugRoute
   '/_authenticated/admin/announcements': typeof AuthenticatedAdminAnnouncementsRoute
   '/_authenticated/admin/categories': typeof AuthenticatedAdminCategoriesRoute
@@ -202,6 +211,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/bookmarks'
     | '/profile'
+    | '/auth/reset-password'
     | '/book/$slug'
     | '/admin/announcements'
     | '/admin/categories'
@@ -221,6 +231,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/bookmarks'
     | '/profile'
+    | '/auth/reset-password'
     | '/book/$slug'
     | '/admin/announcements'
     | '/admin/categories'
@@ -242,6 +253,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/bookmarks'
     | '/_authenticated/profile'
+    | '/auth/reset-password'
     | '/book/$slug'
     | '/_authenticated/admin/announcements'
     | '/_authenticated/admin/categories'
@@ -255,7 +267,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
-  AuthRoute: typeof AuthRoute
+  AuthRoute: typeof AuthRouteWithChildren
   BrowseRoute: typeof BrowseRoute
   PrivacyRoute: typeof PrivacyRoute
   SearchRoute: typeof SearchRoute
@@ -329,6 +341,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/book/$slug'
       preLoaderRoute: typeof BookSlugRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/auth/reset-password': {
+      id: '/auth/reset-password'
+      path: '/reset-password'
+      fullPath: '/auth/reset-password'
+      preLoaderRoute: typeof AuthResetPasswordRouteImport
+      parentRoute: typeof AuthRoute
     }
     '/_authenticated/profile': {
       id: '/_authenticated/profile'
@@ -443,10 +462,20 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface AuthRouteChildren {
+  AuthResetPasswordRoute: typeof AuthResetPasswordRoute
+}
+
+const AuthRouteChildren: AuthRouteChildren = {
+  AuthResetPasswordRoute: AuthResetPasswordRoute,
+}
+
+const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
-  AuthRoute: AuthRoute,
+  AuthRoute: AuthRouteWithChildren,
   BrowseRoute: BrowseRoute,
   PrivacyRoute: PrivacyRoute,
   SearchRoute: SearchRoute,
