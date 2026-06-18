@@ -17,6 +17,7 @@ import { Route as DisclaimerRouteImport } from './routes/disclaimer'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as BrowseRouteImport } from './routes/browse'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as R404RouteImport } from './routes/404'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BookSlugRouteImport } from './routes/book.$slug'
@@ -27,6 +28,9 @@ import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
 import { Route as ReadBookSlugChapterSlugRouteImport } from './routes/read.$bookSlug.$chapterSlug'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin/users'
+import { Route as AuthenticatedAdminSitemapRouteImport } from './routes/_authenticated/admin/sitemap'
+import { Route as AuthenticatedAdminSeoRouteImport } from './routes/_authenticated/admin/seo'
+import { Route as AuthenticatedAdminRedirectsRouteImport } from './routes/_authenticated/admin/redirects'
 import { Route as AuthenticatedAdminFeedbackRouteImport } from './routes/_authenticated/admin/feedback'
 import { Route as AuthenticatedAdminCategoriesRouteImport } from './routes/_authenticated/admin/categories'
 import { Route as AuthenticatedAdminAnnouncementsRouteImport } from './routes/_authenticated/admin/announcements'
@@ -71,6 +75,11 @@ const BrowseRoute = BrowseRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const R404Route = R404RouteImport.update({
+  id: '/404',
+  path: '/404',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
@@ -122,6 +131,23 @@ const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
   path: '/users',
   getParentRoute: () => AuthenticatedAdminRouteRoute,
 } as any)
+const AuthenticatedAdminSitemapRoute =
+  AuthenticatedAdminSitemapRouteImport.update({
+    id: '/sitemap',
+    path: '/sitemap',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminSeoRoute = AuthenticatedAdminSeoRouteImport.update({
+  id: '/seo',
+  path: '/seo',
+  getParentRoute: () => AuthenticatedAdminRouteRoute,
+} as any)
+const AuthenticatedAdminRedirectsRoute =
+  AuthenticatedAdminRedirectsRouteImport.update({
+    id: '/redirects',
+    path: '/redirects',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedAdminFeedbackRoute =
   AuthenticatedAdminFeedbackRouteImport.update({
     id: '/feedback',
@@ -155,6 +181,7 @@ const AuthenticatedAdminBookIdChapterIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/404': typeof R404Route
   '/auth': typeof AuthRouteWithChildren
   '/browse': typeof BrowseRoute
   '/contact': typeof ContactRoute
@@ -171,6 +198,9 @@ export interface FileRoutesByFullPath {
   '/admin/announcements': typeof AuthenticatedAdminAnnouncementsRoute
   '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/admin/feedback': typeof AuthenticatedAdminFeedbackRoute
+  '/admin/redirects': typeof AuthenticatedAdminRedirectsRoute
+  '/admin/seo': typeof AuthenticatedAdminSeoRoute
+  '/admin/sitemap': typeof AuthenticatedAdminSitemapRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/read/$bookSlug/$chapterSlug': typeof ReadBookSlugChapterSlugRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
@@ -179,6 +209,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/404': typeof R404Route
   '/auth': typeof AuthRouteWithChildren
   '/browse': typeof BrowseRoute
   '/contact': typeof ContactRoute
@@ -194,6 +225,9 @@ export interface FileRoutesByTo {
   '/admin/announcements': typeof AuthenticatedAdminAnnouncementsRoute
   '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/admin/feedback': typeof AuthenticatedAdminFeedbackRoute
+  '/admin/redirects': typeof AuthenticatedAdminRedirectsRoute
+  '/admin/seo': typeof AuthenticatedAdminSeoRoute
+  '/admin/sitemap': typeof AuthenticatedAdminSitemapRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/read/$bookSlug/$chapterSlug': typeof ReadBookSlugChapterSlugRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
@@ -204,6 +238,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/404': typeof R404Route
   '/auth': typeof AuthRouteWithChildren
   '/browse': typeof BrowseRoute
   '/contact': typeof ContactRoute
@@ -220,6 +255,9 @@ export interface FileRoutesById {
   '/_authenticated/admin/announcements': typeof AuthenticatedAdminAnnouncementsRoute
   '/_authenticated/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/_authenticated/admin/feedback': typeof AuthenticatedAdminFeedbackRoute
+  '/_authenticated/admin/redirects': typeof AuthenticatedAdminRedirectsRoute
+  '/_authenticated/admin/seo': typeof AuthenticatedAdminSeoRoute
+  '/_authenticated/admin/sitemap': typeof AuthenticatedAdminSitemapRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/read/$bookSlug/$chapterSlug': typeof ReadBookSlugChapterSlugRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
@@ -230,6 +268,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/404'
     | '/auth'
     | '/browse'
     | '/contact'
@@ -246,6 +285,9 @@ export interface FileRouteTypes {
     | '/admin/announcements'
     | '/admin/categories'
     | '/admin/feedback'
+    | '/admin/redirects'
+    | '/admin/seo'
+    | '/admin/sitemap'
     | '/admin/users'
     | '/read/$bookSlug/$chapterSlug'
     | '/admin/'
@@ -254,6 +296,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/404'
     | '/auth'
     | '/browse'
     | '/contact'
@@ -269,6 +312,9 @@ export interface FileRouteTypes {
     | '/admin/announcements'
     | '/admin/categories'
     | '/admin/feedback'
+    | '/admin/redirects'
+    | '/admin/seo'
+    | '/admin/sitemap'
     | '/admin/users'
     | '/read/$bookSlug/$chapterSlug'
     | '/admin'
@@ -278,6 +324,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/404'
     | '/auth'
     | '/browse'
     | '/contact'
@@ -294,6 +341,9 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/announcements'
     | '/_authenticated/admin/categories'
     | '/_authenticated/admin/feedback'
+    | '/_authenticated/admin/redirects'
+    | '/_authenticated/admin/seo'
+    | '/_authenticated/admin/sitemap'
     | '/_authenticated/admin/users'
     | '/read/$bookSlug/$chapterSlug'
     | '/_authenticated/admin/'
@@ -304,6 +354,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  R404Route: typeof R404Route
   AuthRoute: typeof AuthRouteWithChildren
   BrowseRoute: typeof BrowseRoute
   ContactRoute: typeof ContactRoute
@@ -372,6 +423,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/404': {
+      id: '/404'
+      path: '/404'
+      fullPath: '/404'
+      preLoaderRoute: typeof R404RouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -444,6 +502,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminUsersRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/sitemap': {
+      id: '/_authenticated/admin/sitemap'
+      path: '/sitemap'
+      fullPath: '/admin/sitemap'
+      preLoaderRoute: typeof AuthenticatedAdminSitemapRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/seo': {
+      id: '/_authenticated/admin/seo'
+      path: '/seo'
+      fullPath: '/admin/seo'
+      preLoaderRoute: typeof AuthenticatedAdminSeoRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/redirects': {
+      id: '/_authenticated/admin/redirects'
+      path: '/redirects'
+      fullPath: '/admin/redirects'
+      preLoaderRoute: typeof AuthenticatedAdminRedirectsRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/feedback': {
       id: '/_authenticated/admin/feedback'
       path: '/feedback'
@@ -486,6 +565,9 @@ interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminAnnouncementsRoute: typeof AuthenticatedAdminAnnouncementsRoute
   AuthenticatedAdminCategoriesRoute: typeof AuthenticatedAdminCategoriesRoute
   AuthenticatedAdminFeedbackRoute: typeof AuthenticatedAdminFeedbackRoute
+  AuthenticatedAdminRedirectsRoute: typeof AuthenticatedAdminRedirectsRoute
+  AuthenticatedAdminSeoRoute: typeof AuthenticatedAdminSeoRoute
+  AuthenticatedAdminSitemapRoute: typeof AuthenticatedAdminSitemapRoute
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
   AuthenticatedAdminBookIdChapterIdRoute: typeof AuthenticatedAdminBookIdChapterIdRoute
@@ -497,6 +579,9 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
     AuthenticatedAdminAnnouncementsRoute: AuthenticatedAdminAnnouncementsRoute,
     AuthenticatedAdminCategoriesRoute: AuthenticatedAdminCategoriesRoute,
     AuthenticatedAdminFeedbackRoute: AuthenticatedAdminFeedbackRoute,
+    AuthenticatedAdminRedirectsRoute: AuthenticatedAdminRedirectsRoute,
+    AuthenticatedAdminSeoRoute: AuthenticatedAdminSeoRoute,
+    AuthenticatedAdminSitemapRoute: AuthenticatedAdminSitemapRoute,
     AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
     AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
     AuthenticatedAdminBookIdChapterIdRoute:
@@ -537,6 +622,7 @@ const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  R404Route: R404Route,
   AuthRoute: AuthRouteWithChildren,
   BrowseRoute: BrowseRoute,
   ContactRoute: ContactRoute,

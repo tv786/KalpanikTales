@@ -22,6 +22,7 @@ import { BookSlider } from "@/components/BookSlider";
 import { ContinueReading } from "@/components/ContinueReading";
 import { fetchBooks, fetchLastWeekBooks, fetchMostViewedBooks } from "@/lib/books";
 import { cn } from "@/lib/utils";
+import { OrganizationSchema, WebsiteSchema } from "@/components/seo/StructuredData";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -77,10 +78,13 @@ function HomePage() {
   const latestUpdates = latest.data?.slice(0, 12);
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-transparent">
-      <Navbar />
-      <main className="pb-16">
-        <section className="border-b border-border bg-card/40">
+    <>
+      <OrganizationSchema />
+      <WebsiteSchema />
+      <div className="min-h-screen overflow-x-hidden bg-transparent">
+        <Navbar />
+        <main className="pb-16">
+          <section className="border-b border-border bg-card/40">
         
           <div className="mx-auto max-w-7xl px-4 pt-8 sm:px-6">
             <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
@@ -167,6 +171,7 @@ function HomePage() {
       <Footer />
       <FeedbackButton />
     </div>
+    </>
   );
 }
 

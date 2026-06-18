@@ -18,6 +18,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { timeAgo, formatNumber } from "@/lib/helpers";
 import { getSessionId, hasViewedBook, markBookAsViewed } from "@/lib/view-tracking";
+import { BookSchema } from "@/components/seo/StructuredData";
+import { Breadcrumb } from "@/components/seo/Breadcrumb";
+import { SEOMeta } from "@/components/seo/SEOMeta";
 
 async function fetchBookDetail(slug: string) {
   const { data, error } = await supabase
@@ -142,34 +145,7 @@ function BookDetailPage() {
   const bookQ = useQuery({ queryKey: ["book", slug], queryFn: () => fetchBookDetail(slug) });
   const book = bookQ.data;
 
-  useEffect(() => {
-    if (book) {
-      const bookWithMeta = book as any;
-      document.title = bookWithMeta.meta_title || book.title || "Book — KalpanikTales";
-      
-      // Update or create meta description
-      let metaDescription = document.querySelector('meta[name="description"]') as HTMLMetaElement;
-      if (!metaDescription) {
-        metaDescription = document.createElement('meta') as HTMLMetaElement;
-        metaDescription.name = 'description';
-        document.head.appendChild(metaDescription);
-      }
-      metaDescription.content = bookWithMeta.meta_description || book.synopsis || "Read mythological, folklore, and fantasy story books from across Bharat.";
-
-      // Update or create meta keywords
-      let metaKeywords = document.querySelector('meta[name="keywords"]') as HTMLMetaElement;
-      if (!metaKeywords) {
-        metaKeywords = document.createElement('meta') as HTMLMetaElement;
-        metaKeywords.name = 'keywords';
-        document.head.appendChild(metaKeywords);
-      }
-      if (bookWithMeta.meta_keywords) {
-        metaKeywords.content = bookWithMeta.meta_keywords;
-      } else {
-        metaKeywords.removeAttribute('content');
-      }
-    }
-  }, [book]);
+  const bookWithMeta = book as any;
 
   const chaptersQ = useQuery({
     queryKey: ["chapters", book?.id],
@@ -342,9 +318,22 @@ function BookDetailPage() {
     : null;
 
   return (
-    <div className="min-h-screen bg-transparent">
-      <Navbar />
-      <main>
+    <>
+      <SEOMeta
+        title={bookWithMeta.meta_title || book.title}
+        description={bookWithMeta.meta_description || book.synopsis}
+        keywords={bookWithMeta.meta_keywords}
+        canonical={typeof window !== "undefined" ? `${window.location.origin}/book/${book.slug}` : undefined}
+        ogTitle={bookWithMeta.meta_title || book.title}
+        ogDescription={bookWithMeta.meta_description || book.synopsis}
+        ogImage={book.cover_image_url || undefined}
+        ogType="book"
+      />
+      <BookSchema {...book} avg_rating={avg} total_pages={allPages.length} />
+      <Breadcrumb items={[{ name: book.title, href: `/book/${book.slug}` }]} />
+      <div className="min-h-screen bg-transparent">
+        <Navbar />
+        <main>
         {/* Hero header */}
         <section className="relative overflow-hidden border-b border-border">
           <div className="absolute inset-0 opacity-20" style={{ background: "var(--gradient-warm)" }} />
@@ -595,5 +584,6 @@ function BookDetailPage() {
       </main>
       <Footer />
     </div>
+    </>
   );
 }

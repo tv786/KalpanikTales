@@ -122,6 +122,15 @@ function AdminBooks() {
           <Button asChild variant="ghost" size="sm">
             <Link to="/admin/feedback">Feedback</Link>
           </Button>
+          <Button asChild variant="ghost" size="sm">
+            <Link to="/admin/seo">SEO Settings</Link>
+          </Button>
+          <Button asChild variant="ghost" size="sm">
+            <Link to="/admin/redirects">Redirects</Link>
+          </Button>
+          <Button asChild variant="ghost" size="sm">
+            <Link to="/admin/sitemap">Sitemap</Link>
+          </Button>
         </div>
         <Button onClick={() => setShowForm((v) => !v)}>
           <Plus className="mr-2 h-4 w-4" /> New book

@@ -14,6 +14,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { StarryBackground } from "../components/StarryBackground";
+import { Analytics } from "@/components/seo/Analytics";
 
 function NotFoundComponent() {
   return (
@@ -131,6 +132,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <Analytics />
       <StarryBackground />
       <div className="relative z-10 flex min-h-screen flex-col">
         <Outlet />
