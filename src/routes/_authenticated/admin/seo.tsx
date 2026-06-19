@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { ArrowLeft, Save, Globe, BarChart3, Shield } from "lucide-react";
@@ -41,6 +42,9 @@ function AdminSEO() {
     google_tag_manager_id: "",
     google_search_console_verification: "",
     bing_webmaster_verification: "",
+    default_robots_index: true,
+    default_robots_follow: true,
+    default_canonical_url: "",
   });
 
   useState(() => {
@@ -58,6 +62,9 @@ function AdminSEO() {
         google_tag_manager_id: settings.google_tag_manager_id || "",
         google_search_console_verification: settings.google_search_console_verification || "",
         bing_webmaster_verification: settings.bing_webmaster_verification || "",
+        default_robots_index: settings.default_robots_index ?? true,
+        default_robots_follow: settings.default_robots_follow ?? true,
+        default_canonical_url: settings.default_canonical_url || "",
       });
     }
   });
@@ -78,6 +85,9 @@ function AdminSEO() {
           google_tag_manager_id: form.google_tag_manager_id || null,
           google_search_console_verification: form.google_search_console_verification || null,
           bing_webmaster_verification: form.bing_webmaster_verification || null,
+          default_robots_index: form.default_robots_index,
+          default_robots_follow: form.default_robots_follow,
+          default_canonical_url: form.default_canonical_url || null,
         } as any)
         .eq("id", (seoSettings as any)?.id);
       if (error) throw error;
@@ -144,6 +154,51 @@ function AdminSEO() {
                 onChange={(e) => setForm({ ...form, default_og_image: e.target.value })}
                 placeholder="https://kalpaniktales.com/og-image.png"
               />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Robots & Canonical */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-[var(--gold)]" />
+              <CardTitle>Robots & Canonical</CardTitle>
+            </div>
+            <CardDescription>
+              Control search engine crawling and canonical URLs
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>Default Index</Label>
+                <p className="text-xs text-muted-foreground">Allow search engines to index pages by default</p>
+              </div>
+              <Switch
+                checked={form.default_robots_index}
+                onCheckedChange={(checked) => setForm({ ...form, default_robots_index: checked })}
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>Default Follow</Label>
+                <p className="text-xs text-muted-foreground">Allow search engines to follow links by default</p>
+              </div>
+              <Switch
+                checked={form.default_robots_follow}
+                onCheckedChange={(checked) => setForm({ ...form, default_robots_follow: checked })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="default_canonical_url">Default Canonical URL Pattern</Label>
+              <Input
+                id="default_canonical_url"
+                value={form.default_canonical_url}
+                onChange={(e) => setForm({ ...form, default_canonical_url: e.target.value })}
+                placeholder="https://kalpaniktales.com"
+              />
+              <p className="text-xs text-muted-foreground">Base URL for canonical links (leave empty to use current domain)</p>
             </div>
           </CardContent>
         </Card>

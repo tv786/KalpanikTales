@@ -31,6 +31,7 @@ import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminSitemapRouteImport } from './routes/_authenticated/admin/sitemap'
 import { Route as AuthenticatedAdminSeoRouteImport } from './routes/_authenticated/admin/seo'
 import { Route as AuthenticatedAdminRedirectsRouteImport } from './routes/_authenticated/admin/redirects'
+import { Route as AuthenticatedAdminPageSeoRouteImport } from './routes/_authenticated/admin/page-seo'
 import { Route as AuthenticatedAdminMediaRouteImport } from './routes/_authenticated/admin/media'
 import { Route as AuthenticatedAdminFeedbackRouteImport } from './routes/_authenticated/admin/feedback'
 import { Route as AuthenticatedAdminCategoriesRouteImport } from './routes/_authenticated/admin/categories'
@@ -149,6 +150,12 @@ const AuthenticatedAdminRedirectsRoute =
     path: '/redirects',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const AuthenticatedAdminPageSeoRoute =
+  AuthenticatedAdminPageSeoRouteImport.update({
+    id: '/page-seo',
+    path: '/page-seo',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedAdminMediaRoute = AuthenticatedAdminMediaRouteImport.update({
   id: '/media',
   path: '/media',
@@ -205,6 +212,7 @@ export interface FileRoutesByFullPath {
   '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/admin/feedback': typeof AuthenticatedAdminFeedbackRoute
   '/admin/media': typeof AuthenticatedAdminMediaRoute
+  '/admin/page-seo': typeof AuthenticatedAdminPageSeoRoute
   '/admin/redirects': typeof AuthenticatedAdminRedirectsRoute
   '/admin/seo': typeof AuthenticatedAdminSeoRoute
   '/admin/sitemap': typeof AuthenticatedAdminSitemapRoute
@@ -233,6 +241,7 @@ export interface FileRoutesByTo {
   '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/admin/feedback': typeof AuthenticatedAdminFeedbackRoute
   '/admin/media': typeof AuthenticatedAdminMediaRoute
+  '/admin/page-seo': typeof AuthenticatedAdminPageSeoRoute
   '/admin/redirects': typeof AuthenticatedAdminRedirectsRoute
   '/admin/seo': typeof AuthenticatedAdminSeoRoute
   '/admin/sitemap': typeof AuthenticatedAdminSitemapRoute
@@ -264,6 +273,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/_authenticated/admin/feedback': typeof AuthenticatedAdminFeedbackRoute
   '/_authenticated/admin/media': typeof AuthenticatedAdminMediaRoute
+  '/_authenticated/admin/page-seo': typeof AuthenticatedAdminPageSeoRoute
   '/_authenticated/admin/redirects': typeof AuthenticatedAdminRedirectsRoute
   '/_authenticated/admin/seo': typeof AuthenticatedAdminSeoRoute
   '/_authenticated/admin/sitemap': typeof AuthenticatedAdminSitemapRoute
@@ -295,6 +305,7 @@ export interface FileRouteTypes {
     | '/admin/categories'
     | '/admin/feedback'
     | '/admin/media'
+    | '/admin/page-seo'
     | '/admin/redirects'
     | '/admin/seo'
     | '/admin/sitemap'
@@ -323,6 +334,7 @@ export interface FileRouteTypes {
     | '/admin/categories'
     | '/admin/feedback'
     | '/admin/media'
+    | '/admin/page-seo'
     | '/admin/redirects'
     | '/admin/seo'
     | '/admin/sitemap'
@@ -353,6 +365,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/categories'
     | '/_authenticated/admin/feedback'
     | '/_authenticated/admin/media'
+    | '/_authenticated/admin/page-seo'
     | '/_authenticated/admin/redirects'
     | '/_authenticated/admin/seo'
     | '/_authenticated/admin/sitemap'
@@ -535,6 +548,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRedirectsRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/page-seo': {
+      id: '/_authenticated/admin/page-seo'
+      path: '/page-seo'
+      fullPath: '/admin/page-seo'
+      preLoaderRoute: typeof AuthenticatedAdminPageSeoRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/media': {
       id: '/_authenticated/admin/media'
       path: '/media'
@@ -585,6 +605,7 @@ interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminCategoriesRoute: typeof AuthenticatedAdminCategoriesRoute
   AuthenticatedAdminFeedbackRoute: typeof AuthenticatedAdminFeedbackRoute
   AuthenticatedAdminMediaRoute: typeof AuthenticatedAdminMediaRoute
+  AuthenticatedAdminPageSeoRoute: typeof AuthenticatedAdminPageSeoRoute
   AuthenticatedAdminRedirectsRoute: typeof AuthenticatedAdminRedirectsRoute
   AuthenticatedAdminSeoRoute: typeof AuthenticatedAdminSeoRoute
   AuthenticatedAdminSitemapRoute: typeof AuthenticatedAdminSitemapRoute
@@ -600,6 +621,7 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
     AuthenticatedAdminCategoriesRoute: AuthenticatedAdminCategoriesRoute,
     AuthenticatedAdminFeedbackRoute: AuthenticatedAdminFeedbackRoute,
     AuthenticatedAdminMediaRoute: AuthenticatedAdminMediaRoute,
+    AuthenticatedAdminPageSeoRoute: AuthenticatedAdminPageSeoRoute,
     AuthenticatedAdminRedirectsRoute: AuthenticatedAdminRedirectsRoute,
     AuthenticatedAdminSeoRoute: AuthenticatedAdminSeoRoute,
     AuthenticatedAdminSitemapRoute: AuthenticatedAdminSitemapRoute,
