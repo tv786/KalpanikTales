@@ -22,7 +22,7 @@ export function PageRenderer({ content, imageUrl, fontSize = 18 }: Props) {
     content: content ?? { type: "doc", content: [{ type: "paragraph" }] },
     editorProps: {
       attributes: {
-        class: "prose prose-lg prose-neutral dark:prose-invert max-w-none focus:outline-none",
+        class: "prose prose-lg prose-neutral dark:prose-invert max-w-none focus:outline-none [&>p]:mb-4 [&>h1]:mb-4 [&>h2]:mb-4 [&>h3]:mb-4 [&>ul]:mb-4 [&>ol]:mb-4 [&>blockquote]:mb-4",
       },
     },
     immediatelyRender: false,

@@ -83,19 +83,24 @@ export function TipTapEditor({ value, onChange, placeholder, imageFolder = "page
       },
       handlePaste: (view, event) => {
         const files = Array.from(event.clipboardData?.files ?? []).filter((f) => f.type.startsWith("image/"));
-        if (files.length === 0) return false;
-        event.preventDefault();
-        files.forEach((f) => void insertImage(f));
-        return true;
+        if (files.length > 0) {
+          event.preventDefault();
+          files.forEach((f) => void insertImage(f));
+          return true;
+        }
+        // Let TipTap handle HTML/text pasting by default
+        return false;
       },
       handleDrop: (view, event) => {
         const files = Array.from((event as DragEvent).dataTransfer?.files ?? []).filter((f) =>
           f.type.startsWith("image/"),
         );
-        if (files.length === 0) return false;
-        event.preventDefault();
-        files.forEach((f) => void insertImage(f));
-        return true;
+        if (files.length > 0) {
+          event.preventDefault();
+          files.forEach((f) => void insertImage(f));
+          return true;
+        }
+        return false;
       },
     },
     onUpdate: ({ editor }) => onChange(editor.getJSON()),

@@ -15,9 +15,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { slugify } from "@/lib/helpers";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, Trash2, Pencil } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Pencil, Upload } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/$bookId/")({
   component: AdminBookDetail,
@@ -51,6 +59,250 @@ function AdminBookDetail() {
 
   const [edit, setEdit] = useState<typeof book | null>(null);
   useEffect(() => setEdit(book ?? null), [book]);
+
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const [importJson, setImportJson] = useState("");
+
+  const importPage = useMutation({
+    mutationFn: async () => {
+      try {
+        const data = JSON.parse(importJson);
+
+        // Handle both single object and array of objects
+        const items = Array.isArray(data) ? data : [data];
+
+        if (items.length === 0) {
+          throw new Error("No data found in JSON");
+        }
+
+        // Convert HTML to TipTap JSON format using a simple parser
+        // This converts HTML paragraphs to TipTap paragraph nodes with inline formatting
+        const htmlToTipTap = (html: string) => {
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(html, 'text/html');
+          const content: any[] = [];
+
+          // Helper function to parse inline elements recursively
+          const parseInline = (node: Node): any[] => {
+            const result: any[] = [];
+
+            if (node.nodeType === Node.TEXT_NODE) {
+              const text = node.textContent || '';
+              if (text.trim()) {
+                result.push({ type: 'text', text });
+              }
+            } else if (node.nodeType === Node.ELEMENT_NODE) {
+              const element = node as HTMLElement;
+              const children = Array.from(element.childNodes).flatMap(parseInline);
+
+              if (children.length === 0) return result;
+
+              // Handle inline formatting
+              if (element.tagName === 'EM' || element.tagName === 'I') {
+                children.forEach(child => {
+                  if (child.type === 'text') {
+                    child.marks = child.marks || [];
+                    child.marks.push({ type: 'italic' });
+                  }
+                });
+                result.push(...children);
+              } else if (element.tagName === 'STRONG' || element.tagName === 'B') {
+                children.forEach(child => {
+                  if (child.type === 'text') {
+                    child.marks = child.marks || [];
+                    child.marks.push({ type: 'bold' });
+                  }
+                });
+                result.push(...children);
+              } else if (element.tagName === 'U') {
+                children.forEach(child => {
+                  if (child.type === 'text') {
+                    child.marks = child.marks || [];
+                    child.marks.push({ type: 'underline' });
+                  }
+                });
+                result.push(...children);
+              } else if (element.tagName === 'S' || element.tagName === 'STRIKE') {
+                children.forEach(child => {
+                  if (child.type === 'text') {
+                    child.marks = child.marks || [];
+                    child.marks.push({ type: 'strike' });
+                  }
+                });
+                result.push(...children);
+              } else if (element.tagName === 'CODE') {
+                children.forEach(child => {
+                  if (child.type === 'text') {
+                    child.marks = child.marks || [];
+                    child.marks.push({ type: 'code' });
+                  }
+                });
+                result.push(...children);
+              } else if (element.tagName === 'A') {
+                const href = element.getAttribute('href');
+                children.forEach(child => {
+                  if (child.type === 'text') {
+                    child.marks = child.marks || [];
+                    child.marks.push({ type: 'link', attrs: { href } });
+                  }
+                });
+                result.push(...children);
+              } else if (element.tagName === 'BR') {
+                result.push({ type: 'hardBreak' });
+              } else {
+                // For other inline elements, just pass through children
+                result.push(...children);
+              }
+            }
+
+            return result;
+          };
+
+          doc.body.childNodes.forEach((node) => {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+              const element = node as HTMLElement;
+              if (element.tagName === 'P') {
+                const inlineContent = parseInline(element);
+                content.push({
+                  type: 'paragraph',
+                  content: inlineContent.length > 0 ? inlineContent : [{ type: 'text', text: '' }],
+                });
+              } else if (element.tagName === 'H1') {
+                const inlineContent = parseInline(element);
+                content.push({
+                  type: 'heading',
+                  attrs: { level: 1 },
+                  content: inlineContent.length > 0 ? inlineContent : [{ type: 'text', text: '' }],
+                });
+              } else if (element.tagName === 'H2') {
+                const inlineContent = parseInline(element);
+                content.push({
+                  type: 'heading',
+                  attrs: { level: 2 },
+                  content: inlineContent.length > 0 ? inlineContent : [{ type: 'text', text: '' }],
+                });
+              } else if (element.tagName === 'H3') {
+                const inlineContent = parseInline(element);
+                content.push({
+                  type: 'heading',
+                  attrs: { level: 3 },
+                  content: inlineContent.length > 0 ? inlineContent : [{ type: 'text', text: '' }],
+                });
+              } else if (element.tagName === 'UL') {
+                const items: any[] = [];
+                element.querySelectorAll('li').forEach(li => {
+                  const inlineContent = parseInline(li);
+                  items.push({
+                    type: 'listItem',
+                    content: inlineContent.length > 0 ? [{ type: 'paragraph', content: inlineContent }] : [{ type: 'paragraph' }],
+                  });
+                });
+                content.push({
+                  type: 'bulletList',
+                  content: items,
+                });
+              } else if (element.tagName === 'OL') {
+                const items: any[] = [];
+                element.querySelectorAll('li').forEach(li => {
+                  const inlineContent = parseInline(li);
+                  items.push({
+                    type: 'listItem',
+                    content: inlineContent.length > 0 ? [{ type: 'paragraph', content: inlineContent }] : [{ type: 'paragraph' }],
+                  });
+                });
+                content.push({
+                  type: 'orderedList',
+                  content: items,
+                });
+              } else if (element.tagName === 'BLOCKQUOTE') {
+                const inlineContent = parseInline(element);
+                content.push({
+                  type: 'blockquote',
+                  content: inlineContent.length > 0 ? [{ type: 'paragraph', content: inlineContent }] : [{ type: 'paragraph' }],
+                });
+              } else {
+                // Default to paragraph for unknown elements
+                const inlineContent = parseInline(element);
+                content.push({
+                  type: 'paragraph',
+                  content: inlineContent.length > 0 ? inlineContent : [{ type: 'text', text: '' }],
+                });
+              }
+            } else if (node.nodeType === Node.TEXT_NODE && node.textContent?.trim()) {
+              content.push({
+                type: 'paragraph',
+                content: [{ type: 'text', text: node.textContent.trim() }],
+              });
+            }
+          });
+
+          return {
+            type: 'doc',
+            content: content.length > 0 ? content : [{ type: 'paragraph' }],
+          };
+        };
+
+        // Process each item
+        let successCount = 0;
+        let errorCount = 0;
+        const errors: string[] = [];
+
+        for (const item of items) {
+          try {
+            const { chapter, page, content } = item;
+
+            if (!chapter || !page || !content) {
+              throw new Error("Invalid JSON format. Required: chapter, page, content");
+            }
+
+            // Find the chapter by chapter number
+            const { data: chapterData, error: chapterError } = await supabase
+              .from("chapters")
+              .select("id")
+              .eq("book_id", bookId)
+              .eq("chapter_number", chapter)
+              .single();
+
+            if (chapterError || !chapterData) {
+              throw new Error(`Chapter ${chapter} not found`);
+            }
+
+            const tipTapContent = htmlToTipTap(content);
+
+            // Create or update the page
+            const { error: pageError } = await supabase
+              .from("pages")
+              .upsert({
+                chapter_id: chapterData.id,
+                page_number: page,
+                content: tipTapContent,
+              });
+
+            if (pageError) throw pageError;
+            successCount++;
+          } catch (e) {
+            errorCount++;
+            errors.push(e instanceof Error ? e.message : String(e));
+          }
+        }
+
+        if (errorCount > 0) {
+          throw new Error(`Imported ${successCount} pages successfully, ${errorCount} failed. Errors: ${errors.join(', ')}`);
+        }
+      } catch (e) {
+        if (e instanceof SyntaxError) {
+          throw new Error("Invalid JSON format");
+        }
+        throw e;
+      }
+    },
+    onSuccess: () => {
+      toast.success("Pages imported successfully");
+      setShowImportDialog(false);
+      setImportJson("");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const saveBook = useMutation({
     mutationFn: async () => {
@@ -293,7 +545,41 @@ function AdminBookDetail() {
 
       {/* Chapters */}
       <section className="space-y-4 rounded-lg border border-border bg-card p-6">
-        <h2 className="text-lg font-semibold">Chapters</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Chapters</h2>
+          <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Upload className="mr-2 h-4 w-4" /> Import JSON
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Import Page from JSON</DialogTitle>
+                <DialogDescription>
+                  Paste JSON data to import a page. Format: {`{"chapter": 1, "page": 1, "content": "<p>HTML content</p>"}`}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <Textarea
+                  value={importJson}
+                  onChange={(e) => setImportJson(e.target.value)}
+                  placeholder={`{\n  "chapter": 1,\n  "page": 1,\n  "content": "<p>The forge was hotter than the desert.</p>"\n}`}
+                  rows={10}
+                  className="font-mono text-sm"
+                />
+                <div className="flex justify-end gap-2">
+                  <Button variant="ghost" onClick={() => setShowImportDialog(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={() => importPage.mutate()} disabled={importPage.isPending}>
+                    {importPage.isPending ? "Importing..." : "Import"}
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
         <div className="flex flex-wrap items-end gap-2">
           <div className="space-y-1">
             <Label>Number</Label>
