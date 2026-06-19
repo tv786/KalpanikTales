@@ -345,11 +345,21 @@ function BookDetailPage() {
             >
               <div className="aspect-[2/3] overflow-hidden rounded-xl border border-border bg-gradient-to-br from-[var(--saffron)]/30 to-[var(--crimson)]/30 shadow-[var(--shadow-elegant)]">
                 {book.cover_image_url ? (
-                  <img src={book.cover_image_url} alt={book.title} className="h-full w-full object-cover" />
+                  <img
+                    src={book.cover_image_url}
+                    alt={(book as any).cover_image_alt || book.title}
+                    title={(book as any).cover_image_title || undefined}
+                    className="h-full w-full object-cover"
+                  />
                 ) : (
                   <div className="flex h-full items-center justify-center">
                     <BookOpen className="h-16 w-16 text-[var(--gold)]/60" strokeWidth={1} />
                   </div>
+                )}
+                {(book as any).cover_image_caption && (
+                  <p className="mt-2 text-center text-xs text-muted-foreground">
+                    {(book as any).cover_image_caption}
+                  </p>
                 )}
               </div>
             </motion.div>

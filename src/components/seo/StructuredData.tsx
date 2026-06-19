@@ -68,11 +68,11 @@ export function WebsiteSchema() {
   return <StructuredData data={data} type="website" />;
 }
 
-export function BreadcrumbSchema(items: { name: string; item: string }[]) {
+export function BreadcrumbSchema({ items }: { items?: { name: string; item: string }[] }) {
   const data = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
-    itemListElement: items.map((item, index) => ({
+    itemListElement: (items || []).map((item, index) => ({
       "@type": "ListItem",
       position: index + 1,
       name: item.name,

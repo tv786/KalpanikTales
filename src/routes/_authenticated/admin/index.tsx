@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { slugify } from "@/lib/helpers";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash } from "lucide-react";
+import { Plus, Pencil, Trash, Search, X } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
   component: AdminBooks,
@@ -25,14 +25,37 @@ export const Route = createFileRoute("/_authenticated/admin/")({
 function AdminBooks() {
   const qc = useQueryClient();
   const [showForm, setShowForm] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterType, setFilterType] = useState("all");
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [filterFeatured, setFilterFeatured] = useState("all");
 
   const { data: books = [], isLoading } = useQuery({
-    queryKey: ["admin", "books"],
+    queryKey: ["admin", "books", searchQuery, filterType, filterStatus, filterFeatured],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("books")
-        .select("id, slug, title, type, status, total_views, is_featured, created_at")
-        .order("created_at", { ascending: false });
+        .select("id, slug, title, type, status, total_views, is_featured, cover_image_url, created_at");
+
+      if (searchQuery) {
+        query = query.ilike("title", `%${searchQuery}%`);
+      }
+
+      if (filterType !== "all") {
+        query = query.eq("type", filterType);
+      }
+
+      if (filterStatus !== "all") {
+        query = query.eq("status", filterStatus);
+      }
+
+      if (filterFeatured === "featured") {
+        query = query.eq("is_featured", true);
+      } else if (filterFeatured === "not-featured") {
+        query = query.eq("is_featured", false);
+      }
+
+      const { data, error } = await query.order("created_at", { ascending: false });
       if (error) throw error;
       return data ?? [];
     },
@@ -137,6 +160,62 @@ function AdminBooks() {
         </Button>
       </div>
 
+      {/* Search and Filters */}
+      <div className="flex flex-wrap gap-4 rounded-lg border border-border bg-card p-4">
+        <div className="flex-1 min-w-[200px]">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search books..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+        </div>
+        <Select value={filterType} onValueChange={setFilterType}>
+          <SelectTrigger className="w-[150px]">
+            <SelectValue placeholder="Type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Types</SelectItem>
+            <SelectItem value="mythology">Mythology</SelectItem>
+            <SelectItem value="folklore">Folklore</SelectItem>
+            <SelectItem value="fantasy">Fantasy</SelectItem>
+            <SelectItem value="epic">Epic</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={filterStatus} onValueChange={setFilterStatus}>
+          <SelectTrigger className="w-[150px]">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="ongoing">Ongoing</SelectItem>
+            <SelectItem value="completed">Completed</SelectItem>
+            <SelectItem value="hiatus">Hiatus</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={filterFeatured} onValueChange={setFilterFeatured}>
+          <SelectTrigger className="w-[150px]">
+            <SelectValue placeholder="Featured" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All</SelectItem>
+            <SelectItem value="featured">Featured</SelectItem>
+            <SelectItem value="not-featured">Not Featured</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       {showForm && (
         <div className="space-y-4 rounded-lg border border-border bg-card p-6">
           <div className="grid gap-4 md:grid-cols-2">
@@ -203,6 +282,7 @@ function AdminBooks() {
           <table className="w-full text-sm">
             <thead className="bg-muted/40 text-left">
               <tr>
+                <th className="px-4 py-2">Cover</th>
                 <th className="px-4 py-2">Title</th>
                 <th className="px-4 py-2">Type</th>
                 <th className="px-4 py-2">Status</th>
@@ -214,6 +294,19 @@ function AdminBooks() {
             <tbody>
               {books.map((b) => (
                 <tr key={b.id} className="border-t border-border">
+                  <td className="px-4 py-2">
+                    {b.cover_image_url ? (
+                      <img
+                        src={b.cover_image_url}
+                        alt={b.title}
+                        className="h-12 w-8 object-cover rounded"
+                      />
+                    ) : (
+                      <div className="h-12 w-8 bg-muted rounded flex items-center justify-center">
+                        <span className="text-xs text-muted-foreground">No img</span>
+                      </div>
+                    )}
+                  </td>
                   <td className="px-4 py-2 font-medium">{b.title}</td>
                   <td className="px-4 py-2 capitalize">{b.type}</td>
                   <td className="px-4 py-2 capitalize">{b.status}</td>

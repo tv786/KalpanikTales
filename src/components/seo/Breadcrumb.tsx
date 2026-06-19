@@ -24,7 +24,7 @@ export function Breadcrumb({ items, homeHref = "/", homeLabel = "Home" }: Breadc
 
   return (
     <>
-      <BreadcrumbSchema {...schemaItems} />
+      <BreadcrumbSchema items={schemaItems} />
       <nav className="flex items-center space-x-1 text-sm text-muted-foreground" aria-label="Breadcrumb">
         <ol className="flex items-center space-x-1">
           {allItems.map((item, index) => (

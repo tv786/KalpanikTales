@@ -69,6 +69,9 @@ function AdminBookDetail() {
           meta_title: (edit as any).meta_title || null,
           meta_description: (edit as any).meta_description || null,
           meta_keywords: (edit as any).meta_keywords || null,
+          cover_image_alt: (edit as any).cover_image_alt || null,
+          cover_image_caption: (edit as any).cover_image_caption || null,
+          cover_image_title: (edit as any).cover_image_title || null,
         })
         .eq("id", bookId);
       if (error) throw error;
@@ -246,12 +249,39 @@ function AdminBookDetail() {
           </div>
           <div className="space-y-2 md:col-span-2">
             <Label>Meta Keywords</Label>
-            <Input 
-              value={(edit as any).meta_keywords ?? ""} 
+            <Input
+              value={(edit as any).meta_keywords ?? ""}
               onChange={(e) => setEdit({ ...edit, meta_keywords: e.target.value })}
               placeholder="e.g., mythology, folklore, fantasy"
             />
             <p className="text-xs text-muted-foreground">Comma-separated keywords for SEO</p>
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <Label>Cover Image Alt Text</Label>
+            <Input
+              value={(edit as any).cover_image_alt ?? ""}
+              onChange={(e) => setEdit({ ...edit, cover_image_alt: e.target.value })}
+              placeholder={`e.g., Cover art for ${edit.title}`}
+            />
+            <p className="text-xs text-muted-foreground">Descriptive text for screen readers and SEO</p>
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <Label>Cover Image Caption</Label>
+            <Input
+              value={(edit as any).cover_image_caption ?? ""}
+              onChange={(e) => setEdit({ ...edit, cover_image_caption: e.target.value })}
+              placeholder="Optional caption for the cover image"
+            />
+            <p className="text-xs text-muted-foreground">Caption displayed with the image</p>
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <Label>Cover Image Title</Label>
+            <Input
+              value={(edit as any).cover_image_title ?? ""}
+              onChange={(e) => setEdit({ ...edit, cover_image_title: e.target.value })}
+              placeholder="Optional title for the cover image"
+            />
+            <p className="text-xs text-muted-foreground">Title attribute for the image</p>
           </div>
         </div>
         <div className="flex justify-end">
