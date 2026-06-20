@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/dialog";
 import { slugify } from "@/lib/helpers";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, Trash2, Pencil, Upload } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Pencil, Upload, Download } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/$bookId/")({
   component: AdminBookDetail,
@@ -62,6 +62,156 @@ function AdminBookDetail() {
 
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [importJson, setImportJson] = useState("");
+
+  // Convert TipTap JSON to HTML
+  const tipTapToHtml = (content: any): string => {
+    if (!content || !content.content) return "";
+
+    const renderNode = (node: any): string => {
+      if (node.type === "text") {
+        let text = node.text || "";
+        if (node.marks) {
+          node.marks.forEach((mark: any) => {
+            if (mark.type === "bold") text = `<strong>${text}</strong>`;
+            if (mark.type === "italic") text = `<em>${text}</em>`;
+            if (mark.type === "underline") text = `<u>${text}</u>`;
+            if (mark.type === "strike") text = `<s>${text}</s>`;
+            if (mark.type === "code") text = `<code>${text}</code>`;
+          });
+        }
+        return text;
+      }
+
+      if (node.type === "paragraph") {
+        const children = node.content?.map(renderNode).join("") || "";
+        return `<p>${children}</p>`;
+      }
+
+      if (node.type === "heading") {
+        const level = node.attrs?.level || 1;
+        const children = node.content?.map(renderNode).join("") || "";
+        return `<h${level}>${children}</h${level}>`;
+      }
+
+      if (node.type === "bulletList") {
+        const children = node.content?.map(renderNode).join("") || "";
+        return `<ul>${children}</ul>`;
+      }
+
+      if (node.type === "orderedList") {
+        const children = node.content?.map(renderNode).join("") || "";
+        return `<ol>${children}</ol>`;
+      }
+
+      if (node.type === "listItem") {
+        const children = node.content?.map(renderNode).join("") || "";
+        return `<li>${children}</li>`;
+      }
+
+      if (node.type === "blockquote") {
+        const children = node.content?.map(renderNode).join("") || "";
+        return `<blockquote>${children}</blockquote>`;
+      }
+
+      if (node.type === "codeBlock") {
+        const children = node.content?.map(renderNode).join("") || "";
+        return `<pre><code>${children}</code></pre>`;
+      }
+
+      if (node.type === "hardBreak") {
+        return "<br>";
+      }
+
+      // Default: render children
+      if (node.content) {
+        return node.content.map(renderNode).join("");
+      }
+
+      return "";
+    };
+
+    return content.content.map(renderNode).join("");
+  };
+
+  // Export chapter to JSON
+  const exportChapter = async (chapterId: string, chapterNumber: number) => {
+    try {
+      const { data: pages } = await supabase
+        .from("pages")
+        .select("page_number, content")
+        .eq("chapter_id", chapterId)
+        .order("page_number", { ascending: true });
+
+      if (!pages || pages.length === 0) {
+        toast.error("No pages to export");
+        return;
+      }
+
+      const exportData = pages.map((page: any) => ({
+        chapter: chapterNumber,
+        page: page.page_number,
+        content: tipTapToHtml(page.content),
+      }));
+
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `chapter-${chapterNumber}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast.success(`Chapter ${chapterNumber} exported successfully`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Export failed");
+    }
+  };
+
+  // Export all chapters to JSON
+  const exportAllChapters = async () => {
+    try {
+      const exportData: any[] = [];
+
+      for (const chapter of chapters) {
+        const { data: pages } = await supabase
+          .from("pages")
+          .select("page_number, content")
+          .eq("chapter_id", chapter.id)
+          .order("page_number", { ascending: true });
+
+        if (pages && pages.length > 0) {
+          pages.forEach((page: any) => {
+            exportData.push({
+              chapter: chapter.chapter_number,
+              page: page.page_number,
+              content: tipTapToHtml(page.content),
+            });
+          });
+        }
+      }
+
+      if (exportData.length === 0) {
+        toast.error("No pages to export");
+        return;
+      }
+
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${book?.title || "book"}-all-chapters.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast.success("All chapters exported successfully");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Export failed");
+    }
+  };
 
   const importPage = useMutation({
     mutationFn: async () => {
@@ -547,38 +697,43 @@ function AdminBookDetail() {
       <section className="space-y-4 rounded-lg border border-border bg-card p-6">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">Chapters</h2>
-          <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="sm">
-                <Upload className="mr-2 h-4 w-4" /> Import JSON
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Import Page from JSON</DialogTitle>
-                <DialogDescription>
-                  Paste JSON data to import a page. Format: {`{"chapter": 1, "page": 1, "content": "<p>HTML content</p>"}`}
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
-                <Textarea
-                  value={importJson}
-                  onChange={(e) => setImportJson(e.target.value)}
-                  placeholder={`{\n  "chapter": 1,\n  "page": 1,\n  "content": "<p>The forge was hotter than the desert.</p>"\n}`}
-                  rows={10}
-                  className="font-mono text-sm"
-                />
-                <div className="flex justify-end gap-2">
-                  <Button variant="ghost" onClick={() => setShowImportDialog(false)}>
-                    Cancel
-                  </Button>
-                  <Button onClick={() => importPage.mutate()} disabled={importPage.isPending}>
-                    {importPage.isPending ? "Importing..." : "Import"}
-                  </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => exportAllChapters()}>
+              <Download className="mr-2 h-4 w-4" /> Export All
+            </Button>
+            <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Upload className="mr-2 h-4 w-4" /> Import JSON
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Import Page from JSON</DialogTitle>
+                  <DialogDescription>
+                    Paste JSON data to import a page. Format: {`{"chapter": 1, "page": 1, "content": "<p>HTML content</p>"}`}
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <Textarea
+                    value={importJson}
+                    onChange={(e) => setImportJson(e.target.value)}
+                    placeholder={`{\n  "chapter": 1,\n  "page": 1,\n  "content": "<p>The forge was hotter than the desert.</p>"\n}`}
+                    rows={10}
+                    className="font-mono text-sm"
+                  />
+                  <div className="flex justify-end gap-2">
+                    <Button variant="ghost" onClick={() => setShowImportDialog(false)}>
+                      Cancel
+                    </Button>
+                    <Button onClick={() => importPage.mutate()} disabled={importPage.isPending}>
+                      {importPage.isPending ? "Importing..." : "Import"}
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </DialogContent>
-          </Dialog>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
         <div className="flex flex-wrap items-end gap-2">
           <div className="space-y-1">
@@ -620,6 +775,13 @@ function AdminBookDetail() {
                   <Link to="/admin/$bookId/$chapterId" params={{ bookId, chapterId: c.id }}>
                     <Pencil className="mr-1 h-4 w-4" /> Pages
                   </Link>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => exportChapter(c.id, Number(c.chapter_number))}
+                >
+                  <Download className="h-4 w-4" />
                 </Button>
                 <Button
                   variant="ghost"
