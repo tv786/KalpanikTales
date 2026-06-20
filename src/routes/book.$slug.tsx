@@ -294,18 +294,10 @@ function BookDetailPage() {
   // Calculate page-level progress
   const totalPages = allPages.length;
   let completedPages = 0;
-  
-  if (currentChapterIndex >= 0 && totalPages > 0) {
-    // Count all pages from chapters before current chapter
-    for (let i = 0; i < currentChapterIndex; i++) {
-      const chapterPages = allPages.filter(p => p.chapter_id === chapters[i].id);
-      completedPages += chapterPages.length;
-    }
-    // Add pages read in current chapter
-    if (currentPageNumber) {
-      const currentChapterPages = allPages.filter(p => p.chapter_id === currentChapterId);
-      completedPages += Math.min(currentPageNumber, currentChapterPages.length);
-    }
+
+  if (currentChapterIndex >= 0 && totalPages > 0 && currentPageNumber) {
+    // Count all pages with page_number less than or equal to current page
+    completedPages = allPages.filter(p => p.page_number <= currentPageNumber).length;
   }
   
   const progressPercent = totalPages > 0 
@@ -314,7 +306,7 @@ function BookDetailPage() {
   
   // Calculate continuous page number for display
   const continuousCurrentPageNumber = currentChapterId && currentPageNumber
-    ? chapterPageOffsets[currentChapterId] + currentPageNumber
+    ? currentPageNumber
     : null;
 
   return (
@@ -535,7 +527,7 @@ function BookDetailPage() {
                                         key={page.id}
                                         to="/read/$bookSlug/$chapterSlug"
                                         params={{ bookSlug: book.slug, chapterSlug: ch.slug }}
-                                        search={{ page: continuousPageNumber }}
+                                        search={{ page: page.page_number }}
                                         className={`inline-flex items-center justify-center rounded-md border px-3 py-1.5 text-sm transition-colors ${
                                           isPageRead
                                             ? "border-[var(--crimson)] bg-[var(--crimson)]/10 text-[var(--crimson)]"
@@ -543,7 +535,7 @@ function BookDetailPage() {
                                         }`}
                                       >
                                         {isPageRead && <CheckCircle className="mr-1 h-3 w-3" />}
-                                        Page {continuousPageNumber}
+                                        Page {page.page_number}
                                       </Link>
                                     );
                                   })}
