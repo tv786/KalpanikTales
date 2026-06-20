@@ -79,16 +79,20 @@ export async function fetchBooks(opts: {
     }
   });
 
-  // Fetch pages for all chapters
+  // Fetch pages for all chapters - only if we have chapters
   const chapterIds = (chapters ?? []).map(c => c.id);
-  const { data: pages } = await supabase
-    .from("pages")
-    .select("chapter_id, page_number")
-    .in("chapter_id", chapterIds);
+  let pages: any[] = [];
+  if (chapterIds.length > 0) {
+    const { data: pagesData } = await supabase
+      .from("pages")
+      .select("chapter_id, page_number")
+      .in("chapter_id", chapterIds);
+    pages = pagesData ?? [];
+  }
 
   // Calculate total pages per book and page ranges per chapter
   const pagesByChapter = new Map<string, number[]>();
-  (pages ?? []).forEach((p) => {
+  pages.forEach((p) => {
     const arr = pagesByChapter.get(p.chapter_id) ?? [];
     arr.push(p.page_number);
     pagesByChapter.set(p.chapter_id, arr);
@@ -96,12 +100,12 @@ export async function fetchBooks(opts: {
 
   const totalPagesByBook = new Map<string, number>();
   const latestChapterPageRange = new Map<string, { start: number; end: number }>();
-  
+
   // Calculate page offsets for continuous page numbering
   const chapterPageOffsets = new Map<string, number>();
   let offset = 0;
   const sortedChapters = (chapters ?? []).sort((a, b) => Number(a.chapter_number) - Number(b.chapter_number));
-  
+
   for (const chapter of sortedChapters) {
     chapterPageOffsets.set(chapter.id, offset);
     const chapterPages = pagesByChapter.get(chapter.id) ?? [];
@@ -113,7 +117,7 @@ export async function fetchBooks(opts: {
     const chapterPages = pagesByChapter.get(c.id) ?? [];
     const count = totalPagesByBook.get(c.book_id) ?? 0;
     totalPagesByBook.set(c.book_id, count + chapterPages.length);
-    
+
     // If this is the latest chapter for this book, calculate its page range
     const currentLatest = latestChapterByBook.get(c.book_id);
     if (currentLatest && Number(c.chapter_number) === currentLatest) {
@@ -259,7 +263,7 @@ async function enrichBooks(books: any[]): Promise<BookCardData[]> {
       .in("book_id", ids)
       .order("chapter_number", { ascending: false }),
   ]);
-  
+
   const byBook = new Map<string, number[]>();
   (ratings ?? []).forEach((r) => {
     const arr = byBook.get(r.book_id) ?? [];
@@ -270,17 +274,21 @@ async function enrichBooks(books: any[]): Promise<BookCardData[]> {
   (chapters ?? []).forEach((c) => {
     if (!latestChapter.has(c.book_id)) latestChapter.set(c.book_id, Number(c.chapter_number));
   });
-  
-  // Fetch pages for all chapters
+
+  // Fetch pages for all chapters - only if we have chapters
   const chapterIds = (chapters ?? []).map(c => c.id);
-  const { data: pages } = await supabase
-    .from("pages")
-    .select("chapter_id, page_number")
-    .in("chapter_id", chapterIds);
-  
+  let pages: any[] = [];
+  if (chapterIds.length > 0) {
+    const { data: pagesData } = await supabase
+      .from("pages")
+      .select("chapter_id, page_number")
+      .in("chapter_id", chapterIds);
+    pages = pagesData ?? [];
+  }
+
   // Calculate total pages per book and page ranges per chapter
   const pagesByChapter = new Map<string, number[]>();
-  (pages ?? []).forEach((p) => {
+  pages.forEach((p) => {
     const arr = pagesByChapter.get(p.chapter_id) ?? [];
     arr.push(p.page_number);
     pagesByChapter.set(p.chapter_id, arr);
@@ -288,12 +296,12 @@ async function enrichBooks(books: any[]): Promise<BookCardData[]> {
 
   const totalPagesByBook = new Map<string, number>();
   const latestChapterPageRange = new Map<string, { start: number; end: number }>();
-  
+
   // Calculate page offsets for continuous page numbering
   const chapterPageOffsets = new Map<string, number>();
   let offset = 0;
   const sortedChapters = (chapters ?? []).sort((a, b) => Number(a.chapter_number) - Number(b.chapter_number));
-  
+
   for (const chapter of sortedChapters) {
     chapterPageOffsets.set(chapter.id, offset);
     const chapterPages = pagesByChapter.get(chapter.id) ?? [];
@@ -305,7 +313,7 @@ async function enrichBooks(books: any[]): Promise<BookCardData[]> {
     const chapterPages = pagesByChapter.get(c.id) ?? [];
     const count = totalPagesByBook.get(c.book_id) ?? 0;
     totalPagesByBook.set(c.book_id, count + chapterPages.length);
-    
+
     // If this is the latest chapter for this book, calculate its page range
     const currentLatest = latestChapter.get(c.book_id);
     if (currentLatest && Number(c.chapter_number) === currentLatest) {
@@ -315,7 +323,7 @@ async function enrichBooks(books: any[]): Promise<BookCardData[]> {
       latestChapterPageRange.set(c.book_id, { start: startPage, end: endPage });
     }
   });
-  
+
   return books.map((b) => {
     const arr = byBook.get(b.id) ?? [];
     const avg = arr.length ? arr.reduce((a, c) => a + c, 0) / arr.length : 0;

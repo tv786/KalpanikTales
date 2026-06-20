@@ -30,8 +30,8 @@ export function StarryBackground() {
 
     const initStars = () => {
       stars = [];
-      const numStars = Math.floor((canvas.width * canvas.height) / 6000); // Adjust density
-      
+      const numStars = Math.floor((canvas.width * canvas.height) / 15000); // Reduced density for better performance
+
       for (let i = 0; i < numStars; i++) {
         const isGold = Math.random() > 0.5;
         stars.push({

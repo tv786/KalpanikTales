@@ -115,6 +115,7 @@ export function ContinueReading() {
     queryKey: ["reading-history", user?.id],
     queryFn: () => fetchReadingHistory(user!.id),
     enabled: !!user,
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
   });
 
   if (!user) {

@@ -13,6 +13,8 @@ export function Analytics() {
       if (error) throw error;
       return data;
     },
+    staleTime: 1000 * 60 * 60, // Cache for 1 hour
+    gcTime: 1000 * 60 * 60 * 24, // Keep in cache for 24 hours
   });
 
   useEffect(() => {

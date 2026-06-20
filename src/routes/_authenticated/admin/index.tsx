@@ -59,6 +59,7 @@ function AdminBooks() {
       if (error) throw error;
       return data ?? [];
     },
+    staleTime: 1000 * 60 * 2, // Cache for 2 minutes
   });
 
   const { data: commentsForBooks = [] } = useQuery({
