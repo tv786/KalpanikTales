@@ -15,6 +15,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { StarryBackground } from "../components/StarryBackground";
 import { Analytics } from "@/components/seo/Analytics";
+import { ScrollToTop } from "@/components/ScrollToTop";
 
 function NotFoundComponent() {
   return (
@@ -137,6 +138,7 @@ function RootComponent() {
       <div className="relative z-10 flex min-h-screen flex-col">
         <Outlet />
       </div>
+      <ScrollToTop />
       <Toaster position="bottom-right" richColors />
     </QueryClientProvider>
   );

@@ -228,6 +228,7 @@ function ReaderPage() {
   const { book, chapter, pages } = data;
   const currentPage = pages[pageIndex];
   const [controlsVisible, setControlsVisible] = useState(false);
+  const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
 
   return (
     <div className="min-h-screen bg-transparent">
@@ -313,8 +314,23 @@ function ReaderPage() {
           if (!t) return;
           // ignore taps on interactive elements
           if (t.closest("button, a, input, textarea, select, label")) return;
-          // toggle controls for taps anywhere else (including content)
-          setControlsVisible((v) => !v);
+          // track touch start position to distinguish tap from scroll
+          setTouchStart({ x: e.clientX, y: e.clientY });
+        }}
+        onPointerUp={(e) => {
+          const t = (e.target as HTMLElement | null);
+          if (!t || !touchStart) return;
+          // ignore taps on interactive elements
+          if (t.closest("button, a, input, textarea, select, label")) return;
+          // check if this was a tap (minimal movement) or a scroll
+          const deltaX = Math.abs(e.clientX - touchStart.x);
+          const deltaY = Math.abs(e.clientY - touchStart.y);
+          const isTap = deltaX < 10 && deltaY < 10;
+          setTouchStart(null);
+          // only toggle controls if it was a true tap, not a scroll
+          if (isTap) {
+            setControlsVisible((v) => !v);
+          }
         }}
       >
         {pages.length === 0 ? (
